@@ -445,7 +445,7 @@ class DocumentSemanticDiversity(metric.TextDiversity):
         'mean_adj': False,
         'verbose': False,
         # DocumentSemanticDiversity configs
-        'MODEL_NAME':"bert-large-nli-stsb-mean-tokens",
+        'MODEL_NAME': "princeton-nlp/sup-simcse-roberta-large", # "bert-large-nli-stsb-mean-tokens",
         'use_gpu': False,
         'n_components': None
     }
