@@ -10,6 +10,18 @@ from transformations.diverse_paraphrase.submod.submodular_funcs import (
     ngram_overlap_unit,
     similarity_gain,
     seq_gain,
+    # textdiversity
+    div_helper,
+    sim_helper
+)
+
+from textdiversity import (
+    TokenSemanticDiversity
+    DocumentSemanticDiversity
+    POSSequenceDiversity
+    RhythmicDiversity
+    PhonemicDiversity
+    DependencyDiversity
 )
 
 
@@ -33,61 +45,81 @@ class SubmodularOpt:
         self.v = v
         self.V = V
 
-    def initialize_function(self, lam, a1=1.0, a2=1.0, b1=1.0, b2=1.0):
+        # similarity functions
+        self.toksim_fn = TokenSemanticDiversity()
+        self.docsim_fn = DocumentSemanticDiversity()
+
+        # diversity functions
+        self.posdiv_fn = POSSequenceDiversity()
+        self.rhydiv_fn = RhythmicDiversity()
+        self.phodiv_fn = PhonemicDiversity()
+        self.depdiv_fn = DependencyDiversity()
+
+    def initialize_function(self, 
+                            lam, 
+                            w_toksim = 1.0,
+                            w_docsim = 1.0,
+                            w_posdiv = 1.0, 
+                            w_rhydiv = 1.0, 
+                            w_phodiv = 1.0, 
+                            w_depdiv = 1.0):
         """
         Parameters
         ---
 
         lam: float (0 <= lam <= 1.)
-            Determines fraction of weight assigned to the diversity and fidelity(quality) components
-        a1 : float
-            Weight assigned to semantic similarity based on word-vectors of V and v.
-        a2 : float
-            Weight assigned to semantic similarity based on lexical overlaps between V and v.
-        b1 : float
-            Weight assigned to n gram diversity within candidates in V.
-        b2 : float
-            Weight assigned to coverage function to obtain diversity within candidates in V.
+            Determines fraction of weight assigned to the diversity and similarity components
+        w_toksim : float
+            Weight assigned to token semantic similarity between V and v.
+        w_docsim : float
+            Weight assigned to document semantic similarity between V and v.
+        w_posdiv : float
+            Weight assigned to part-of-speech (pos) sequence diversity.
+        w_rhydiv : float
+            Weight assigned to rhythmic diversity.
+        w_phodiv : float
+            Weight assigned to phonemic diversity.
+        w_posdiv : float
+            Weight assigned to syntactical diversity via dependency parses.
         """
-        self.a1 = a1
-        self.a2 = a2
-        self.b1 = b1
-        self.b2 = b2
-
-        self.noverlap_norm = ngram_overlap(self.v, self.V)
-        self.ndistinct_norm = distinct_ngrams(self.V)
-        self.sim_norm = similarity_func(self.v, self.V)
-        self.edit_norm = np.sqrt(len(self.V))
+        
         self.lam = lam
 
-    def final_func(self, pos_sets, rem_list, selec_set):
-        distinct_score = (
-            np.array(list(map(distinct_ngrams, pos_sets))) / self.ndistinct_norm
-        )
+        # similarity weights
+        self.w_toksim = w_toksim
+        self.w_docsim = w_docsim
 
-        base_noverlap_score = ngram_overlap(self.v, selec_set)
-        base_sim_score = similarity_func(self.v, selec_set)
-        base_edit_score = seq_func(self.V, selec_set)
+        # diversity weights
+        self.w_posdiv = w_posdiv
+        self.w_rhydiv = w_rhydiv
+        self.w_phodiv = w_phodiv
+        self.w_posdiv = w_posdiv
 
-        noverlap_score = []
-        for sent in rem_list:
-            noverlap_score.append(ngram_overlap_unit(self.v, sent, base_noverlap_score))
-        noverlap_score = np.array(noverlap_score) / self.noverlap_norm
+    def final_func(self, pos_sets, rem_list, selec_set, normalize=False):
+        
+        toksim_scores, docsim_scores = [], []
+        posdiv_scores, rhydiv_scores, phodiv_scores, depdiv_scores = [], [], [], []
+        
+        for doc in rem_list:
 
-        sim_score = []
-        for sent in rem_list:
-            sim_score.append(similarity_gain(self.v, sent, base_sim_score))
-        sim_score = np.array(sim_score) / self.sim_norm
+            # similarities
+            toksim_scores.append(sim_helper(doc, self.v, self.toksim_fn, normalize))
+            docsim_scores.append(sim_helper(doc, self.v, self.docsim_fn, normalize))
+            
+            # diversities
+            posdiv_scores.append(div_helper(doc, self.v, self.posdiv_fn, normalize))
+            rhydiv_scores.append(div_helper(doc, self.v, self.rhydiv_fn, normalize))
+            phodiv_scores.append(div_helper(doc, self.v, self.phodiv_fn, normalize))
+            depdiv_scores.append(div_helper(doc, self.v, self.depdiv_fn, normalize))
 
-        edit_score = []
-        for sent in rem_list:
-            edit_score.append(seq_gain(self.v, sent, base_edit_score))
-        edit_score = np.array(edit_score) / self.edit_norm
+        sim_score = self.w_toksim * np.array(toksim_scores) 
+                  + self.w_docsim * np.array(docsim_scores)
+        div_score = self.w_posdiv * np.array(posdiv_scores) 
+                  + self.w_rhydiv * np.array(rhydiv_scores) 
+                  + self.w_phodiv * np.array(phodiv_scores) 
+                  + self.w_posdiv * np.array(depdiv_scores) 
 
-        quality_score = self.a1 * sim_score + self.a2 * noverlap_score
-        diversity_score = self.b1 * distinct_score + self.b2 * edit_score
-
-        final_score = self.lam * quality_score + (1 - self.lam) * diversity_score
+        final_score = self.lam * sim_score + (1 - self.lam) * div_score
 
         return final_score
 
