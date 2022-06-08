@@ -4,19 +4,15 @@ import torch
 from random import sample
 from transformers import FSMTForConditionalGeneration, FSMTTokenizer
 
-from interfaces.SentenceOperation import SentenceOperation
-from tasks.TaskTypes import TaskType
-
-from transformations.diverse_paraphrase.submod.submodopt import SubmodularOpt
-from transformations.diverse_paraphrase.submod.submodular_funcs import trigger_dips
+from .submod.submodopt import SubmodularOpt
 
 
-class DiverseParaphrase(SentenceOperation):
-    tasks = [TaskType.TEXT_CLASSIFICATION, TaskType.TEXT_TO_TEXT_GENERATION]
-    languages = ["en"]
+class DiverseParaphrase:
 
-    def __init__(self, augmenter="dips", num_outputs=3, seed=42):
-        super().__init__()
+    def __init__(self, augmenter="textdiv", num_outputs=3, seed=42, verbose=True):
+        self.augmenter = augmenter
+        self.num_outputs = num_outputs
+        self.verbose = verbose
 
         random.seed(seed)
         np.random.seed(seed)
@@ -25,9 +21,9 @@ class DiverseParaphrase(SentenceOperation):
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
 
-        assert augmenter in ["dips", "random", "diverse_beam", "beam"]
+        assert augmenter in ["textdiv", "random", "diverse_beam", "beam"]
         if self.verbose:
-            choices = ["dips", "random", "diverse_beam", "beam"]
+            choices = ["textdiv", "random", "diverse_beam", "beam"]
             print(
                 "The base paraphraser being used is Backtranslation - Generating {} candidates based on {}\n".format(
                     num_outputs, augmenter
@@ -35,32 +31,32 @@ class DiverseParaphrase(SentenceOperation):
             )
             print("Primary options for augmenter : {}. \n".format(str(choices)))
             print(
-                "Default: augmenter='dips', num_outputs=3. Change using DiverseParaphrase(augmenter=<option>, num_outputs=<num_outputs>)\n"
+                "Default: augmenter='textdiv', num_outputs=3. Change using DiverseParaphrase(augmenter=<option>, num_outputs=<num_outputs>)\n"
             )
-            print("Starting to load English to German Translation Model.\n")
+            print("Starting to load English to German Translation Model...")
 
         name_en_de = "facebook/wmt19-en-de"
         self.tokenizer_en_de = FSMTTokenizer.from_pretrained(name_en_de)
         self.model_en_de = FSMTForConditionalGeneration.from_pretrained(name_en_de)
 
         if self.verbose:
-            print("Completed loading English to German Translation Model.\n")
-            print("Starting to load German to English Translation Model:")
+            print("Completed loading English to German Translation Model.")
+            print("Starting to load German to English Translation Model...")
 
         name_de_en = "facebook/wmt19-de-en"
         self.tokenizer_de_en = FSMTTokenizer.from_pretrained(name_de_en)
         self.model_de_en = FSMTForConditionalGeneration.from_pretrained(name_de_en)
 
         if self.verbose:
-            print("Completed loading German to English Translation Model.\n")
+            print("Completed loading German to English Translation Model.")
 
         self.augmenter = augmenter
-        if self.augmenter == "dips":
+        if self.augmenter == "textdiv":
             if self.verbose:
-                print("Loading word2vec gensim model. Please wait...")
-            trigger_dips()
+                print("Initializing textdiv classes. Please wait...")
+            self.subopt = SubmodularOpt()
             if self.verbose:
-                print("Completed loading word2vec gensim model.\n")
+                print("Completed initializing textdiv classes.")
         self.num_outputs = num_outputs
 
     def en2de(self, input):
@@ -97,11 +93,19 @@ class DiverseParaphrase(SentenceOperation):
             self.tokenizer_de_en.decode(output, skip_special_tokens=True)
             for output in outputs
         ]
-        if self.augmenter == "dips":
+        if self.augmenter == "textdiv":
             try:
-                subopt = SubmodularOpt(decoded, sentence)
-                subopt.initialize_function(0.4, a1=0.5, a2=0.5, b1=1.0, b2=1.0)
-                predicted_outputs = list(subopt.maximize_func(self.num_outputs))
+                self.subopt.V = decoded
+                self.subopt.v = sentence
+                self.subopt.initialize_function(
+                            lam = 0.5, 
+                            w_toksim = 1.0,
+                            w_docsim = 1.0,
+                            w_posdiv = 1.0, 
+                            w_rhydiv = 1.0, 
+                            w_phodiv = 1.0, 
+                            w_depdiv = 1.0)
+                predicted_outputs = list(self.subopt.maximize_func(self.num_outputs))
             except Exception as e:
                 if self.verbose:
                     print("Error in SubmodularOpt: {}".format(e))
@@ -147,3 +151,12 @@ class DiverseParaphrase(SentenceOperation):
     def generate(self, sentence: str):
         candidates = self.generate_diverse(sentence)
         return candidates
+
+
+if __name__ == '__main__':
+
+    text = 'She sells seashells by the seashore.'
+
+    transform_fn = DiverseParaphrase(augmenter='textdiv', num_outputs=3)
+    paraphrases = transform_fn.generate(text)
+    print(paraphrases)

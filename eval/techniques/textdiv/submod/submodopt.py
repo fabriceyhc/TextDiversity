@@ -2,7 +2,7 @@ import numpy as np
 import scipy.linalg as la
 import pdb
 
-from transformations.diverse_paraphrase.submod.submodular_funcs import (
+from .submodular_funcs import (
     distinct_ngrams,
     ngram_overlap,
     similarity_func,
@@ -16,12 +16,14 @@ from transformations.diverse_paraphrase.submod.submodular_funcs import (
 )
 
 from textdiversity import (
-    TokenSemanticDiversity
-    DocumentSemanticDiversity
-    POSSequenceDiversity
-    RhythmicDiversity
-    PhonemicDiversity
-    DependencyDiversity
+    # similarities
+    TokenSemanticDiversity,
+    DocumentSemanticDiversity,
+    # diversities
+    POSSequenceDiversity,
+    RhythmicDiversity,
+    PhonemicDiversity,
+    DependencyDiversity,
 )
 
 
@@ -56,7 +58,7 @@ class SubmodularOpt:
         self.depdiv_fn = DependencyDiversity()
 
     def initialize_function(self, 
-                            lam, 
+                            lam = 0.5, 
                             w_toksim = 1.0,
                             w_docsim = 1.0,
                             w_posdiv = 1.0, 
@@ -112,11 +114,11 @@ class SubmodularOpt:
             phodiv_scores.append(div_helper(doc, self.v, self.phodiv_fn, normalize))
             depdiv_scores.append(div_helper(doc, self.v, self.depdiv_fn, normalize))
 
-        sim_score = self.w_toksim * np.array(toksim_scores) 
+        sim_score = self.w_toksim * np.array(toksim_scores) \
                   + self.w_docsim * np.array(docsim_scores)
-        div_score = self.w_posdiv * np.array(posdiv_scores) 
-                  + self.w_rhydiv * np.array(rhydiv_scores) 
-                  + self.w_phodiv * np.array(phodiv_scores) 
+        div_score = self.w_posdiv * np.array(posdiv_scores) \
+                  + self.w_rhydiv * np.array(rhydiv_scores) \
+                  + self.w_phodiv * np.array(phodiv_scores) \
                   + self.w_posdiv * np.array(depdiv_scores) 
 
         final_score = self.lam * sim_score + (1 - self.lam) * div_score
