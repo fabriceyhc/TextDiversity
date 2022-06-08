@@ -4,7 +4,6 @@ async-timeout==4.0.2
 attrs==21.4.0
 biopython==1.79
 blis==0.7.7
-blosc @ file:///C:/ci_310/python-blosc_1642117183052/work
 cadences==0.3.4
 catalogue==2.0.7
 certifi==2022.5.18.1

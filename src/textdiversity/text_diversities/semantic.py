@@ -20,8 +20,8 @@ import gensim.downloader
 from nltk.corpus import stopwords
 
 # locals
-import metric
-from utils import *
+from ..metric import TextDiversity
+from ..utils import *
 
 # config
 transformers.logging.set_verbosity_error()
@@ -30,11 +30,12 @@ transformers.logging.set_verbosity_error()
 # helper functions 
 # ==================================================================================
 
+# NA
 
 # ==================================================================================
 
 
-class TokenSemanticDiversity(metric.TextDiversity):
+class TokenSemanticDiversity(TextDiversity):
 
     default_config = {
         # TextDiversity configs
@@ -72,7 +73,7 @@ class TokenSemanticDiversity(metric.TextDiversity):
         if isinstance(self.model, torch.nn.Module):
             self.model.to(self.device)
 
-        print('{0} ({1})'.format(self.__class__.__name__, config['MODEL_NAME']))
+        # print('{0} ({1})'.format(self.__class__.__name__, config['MODEL_NAME']))
 
     def encode(self, input_ids, attention_mask):
         self.model.eval()
@@ -186,7 +187,7 @@ class TokenSemanticDiversity(metric.TextDiversity):
         return super().__call__(response_set)
 
 
-class TokenEmbeddingDiversity(metric.TextDiversity):
+class TokenEmbeddingDiversity(TextDiversity):
 
     default_config = {
         # TextDiversity configs
@@ -214,7 +215,7 @@ class TokenEmbeddingDiversity(metric.TextDiversity):
         self.model = gensim.downloader.load(config['EMBEDDING'])
         self.batch_size = config['batch_size']
 
-        print('{0} ({1})'.format(self.__class__.__name__, config['EMBEDDING']))
+        # print('{0} ({1})'.format(self.__class__.__name__, config['EMBEDDING']))
 
 
     def extract_features(self, corpus):
@@ -305,7 +306,7 @@ class TokenEmbeddingDiversity(metric.TextDiversity):
         return super().__call__(response_set)
 
 
-class STokenSemanticDiversity(metric.TextDiversity):
+class STokenSemanticDiversity(TextDiversity):
 
     default_config = {
         # TextDiversity configs
@@ -337,7 +338,7 @@ class STokenSemanticDiversity(metric.TextDiversity):
             self.model.tokenizer.sep_token_id
         ]
 
-        print('{0} ({1})'.format(self.__class__.__name__, config['MODEL_NAME']))
+        # print('{0} ({1})'.format(self.__class__.__name__, config['MODEL_NAME']))
 
     def extract_features(self, corpus):
 
@@ -431,7 +432,7 @@ class STokenSemanticDiversity(metric.TextDiversity):
         return super().__call__(response_set)
 
 
-class DocumentSemanticDiversity(metric.TextDiversity):
+class DocumentSemanticDiversity(TextDiversity):
 
     default_config = {
         # TextDiversity configs
@@ -457,7 +458,7 @@ class DocumentSemanticDiversity(metric.TextDiversity):
         self.model = SentenceTransformer(config['MODEL_NAME'], device=self.device)
         self.config['verbose'] = config['verbose']
 
-        print('{0} ({1})'.format(self.__class__.__name__, config['MODEL_NAME']))
+        # print('{0} ({1})'.format(self.__class__.__name__, config['MODEL_NAME']))
 
     def extract_features(self, corpus):
 

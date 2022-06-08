@@ -6,14 +6,6 @@ import numpy as np
 import tempfile
 import os
 import csv
-from lexicalrichness import LexicalRichness
-
-# locals
-import utils
-
-global_score_cache = {}
-similarity2diversity_function = lambda sim_score_list: - np.mean(sim_score_list)
-
 
 class Metric(ABC):
     use_me = False  # static var indicates to run files whether or not to use this metric

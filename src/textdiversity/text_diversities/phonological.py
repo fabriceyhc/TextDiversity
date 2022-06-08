@@ -22,8 +22,8 @@ import sys
 from collections import Counter
 
 # locals
-import metric
-from utils import *
+from ..metric import TextDiversity
+from ..utils import *
 
 # ==================================================================================
 # helper functions 
@@ -61,7 +61,7 @@ def get_phonemes(corpus, return_counts=True):
 
 # ==================================================================================
 
-class RhythmicDiversity(metric.TextDiversity):
+class RhythmicDiversity(TextDiversity):
 
     default_config = {
         # TextDiversity configs
@@ -149,7 +149,7 @@ class RhythmicDiversity(metric.TextDiversity):
 
 
 
-class PhonemicDiversity(metric.TextDiversity):
+class PhonemicDiversity(TextDiversity):
 
     default_config = {
         # TextDiversity configs
@@ -164,8 +164,8 @@ class PhonemicDiversity(metric.TextDiversity):
         super().__init__(config)
 
         # load pre-computed phonemic similarity matrix Z
-        cur_dir = os.path.abspath(os.path.dirname(sys.argv[0]) or '.')
-        csv_path = os.path.join(cur_dir, '../similarities/phoneme_similarities.csv')
+        file_dir = os.path.dirname(__file__)
+        csv_path = os.path.join(file_dir, '../similarities/phoneme_similarities.csv')
         self.Z = pd.read_csv(csv_path, index_col=0)
 
     def extract_features(self, corpus):

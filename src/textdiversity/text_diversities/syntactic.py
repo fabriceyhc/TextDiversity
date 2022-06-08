@@ -15,8 +15,8 @@ import zss
 # from matplotlib import pyplot as plt
 
 # locals
-import metric
-from utils import *
+from ..metric import TextDiversity
+from ..utils import *
 
 # ==================================================================================
 # helper functions 
@@ -66,7 +66,7 @@ def zss_tree_edit_distance(G1, G2):
 
 # ==================================================================================
 
-class DependencyDiversity(metric.TextDiversity):
+class DependencyDiversity(TextDiversity):
 
     default_config = {
         # TextDiversity configs

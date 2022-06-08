@@ -9,8 +9,8 @@ from sklearn.decomposition import PCA
 from Bio import Align
 
 # locals
-import metric
-from utils import *
+from ..metric import TextDiversity
+from ..utils import *
 
 # ==================================================================================
 # helper functions 
@@ -21,7 +21,7 @@ def align_and_score(seq1, seq2):
 
 # ==================================================================================
 
-class POSSequenceDiversity(metric.TextDiversity):
+class POSSequenceDiversity(TextDiversity):
 
     default_config = {
         # TextDiversity configs
