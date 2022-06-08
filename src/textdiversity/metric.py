@@ -97,6 +97,27 @@ class TextDiversity(DiversityMetric):
 
         return D
 
+    def similarity(self, corpus):
+
+        if not all([type(d) == str and d.strip() != "" for d in corpus]):
+            print('corpus contains invalid inputs: \n {} \n returning 0'.format(corpus))
+            return 0
+
+        # extract features + species
+        features, species = self.extract_features(corpus)
+
+        # if there are no features, diversity is 0 by default
+        if len(features) == 0:
+            return 0
+
+        # get similarity matrix Z
+        Z = self.calculate_similarities(features)
+
+        # calculate similarity score
+        similarity = Z.sum() / len(Z)
+        
+        return similarity
+
     @abstractmethod
     def extract_features(self, corpus, *args, **kwargs):  
         # validate input

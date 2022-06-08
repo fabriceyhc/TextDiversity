@@ -109,7 +109,7 @@ class POSSequenceDiversity(TextDiversity):
 
 if __name__ == '__main__':
 
-    def print_metric(metric_class, lo_div, hi_div):
+    def print_div_metric(metric_class, lo_div, hi_div):
 
         div_metric = metric_class({'normalize': False})
         div_lo_unnorm = div_metric(lo_div)
@@ -129,8 +129,28 @@ if __name__ == '__main__':
                 div_lo_unnorm < div_hi_unnorm 
             and div_lo_norm < div_hi_norm))
 
+
+
+    def print_sim_metric(metric_class, lo_div, hi_div):
+
+        div_metric = metric_class()
+        sim_hi = div_metric.similarity(lo_div)
+        sim_lo = div_metric.similarity(hi_div)
+
+        print('metric:{0} | lo_div: {1:0.3f} | hi_div: {2:0.3f}'
+            .format(
+                metric_class.__name__,
+                sim_lo, 
+                sim_hi))
+
     # TEST
     lo_div = ['one massive earth', 'an enormous globe', 'the colossal world']
     hi_div = ['basic human right', 'you were right', 'make a right']
 
-    print_metric(POSSequenceDiversity, lo_div, hi_div)
+    # diversities
+    print("diversities")
+    print_div_metric(POSSequenceDiversity, lo_div, hi_div)
+
+    # similarities
+    print("similarities")
+    print_sim_metric(POSSequenceDiversity, lo_div, hi_div)
