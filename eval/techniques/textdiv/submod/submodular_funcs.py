@@ -223,3 +223,37 @@ def info_gain(s, orig_count, ref_count, base_score=0.0):
 
 ########################################### TEXTDIV FUNCTIONS #######################################################
 
+from textdiversity import (
+    POSSequenceDiversity
+    RhythmicDiversity
+    PhonemicDiversity
+    DependencyDiversity
+    TokenSemanticDiversity
+    DocumentSemanticDiversity
+)
+
+
+def div_helper(candidate_text, input_text, diversity_metric, normalize=False):
+
+    # set normalization config
+    diversity_metric.config['normalize'] = normalize
+
+    # join texts into a "corpus"
+    corpus = [input_text, candidate_text]
+
+    # calculate diversity score
+    score = diversity_metric(corpus)
+
+    return score
+
+def sim_helper(candidate_text, input_text, diversity_metric, normalize=False):
+
+    # join texts into a "corpus"
+    corpus = [input_text, candidate_text]
+
+    # calculate similarity score
+    score = diversity_metric.similarity(corpus)
+
+    return score
+    
+    
