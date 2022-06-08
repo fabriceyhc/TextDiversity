@@ -41,7 +41,7 @@ def get_phonemes(corpus, return_counts=True):
     words = {w.lower() for line in text for w in line.strip().split(' ') if w}
 
     # initialize the espeak backend for English
-    backend = EspeakBackend('en-us')
+    backend = EspeakBackend('en-us', words_mismatch='ignore')
 
     # separate phones by a space and ignoring words boundaries
     separator = Separator(phone=' ', word=None)
