@@ -17,7 +17,7 @@ class TextDiversityParaphraser:
         random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
-        torch.use_deterministic_algorithms(True)
+        # torch.use_deterministic_algorithms(True)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
 
@@ -26,7 +26,7 @@ class TextDiversityParaphraser:
 
         name_en_de = "facebook/wmt19-en-de"
         self.tokenizer_en_de = FSMTTokenizer.from_pretrained(name_en_de)
-        self.model_en_de = FSMTForConditionalGeneration.from_pretrained(name_en_de, device=self.device)
+        self.model_en_de = FSMTForConditionalGeneration.from_pretrained(name_en_de)
 
         if self.verbose:
             print("Completed loading English to German Translation Model.")
@@ -34,7 +34,7 @@ class TextDiversityParaphraser:
 
         name_de_en = "facebook/wmt19-de-en"
         self.tokenizer_de_en = FSMTTokenizer.from_pretrained(name_de_en)
-        self.model_de_en = FSMTForConditionalGeneration.from_pretrained(name_de_en, device=self.device)
+        self.model_de_en = FSMTForConditionalGeneration.from_pretrained(name_de_en)
 
         if self.verbose:
             print("Completed loading German to English Translation Model.")
@@ -48,7 +48,7 @@ class TextDiversityParaphraser:
         self.num_outputs = num_outputs
 
     def en2de(self, input):
-        input_ids = self.tokenizer_en_de.encode(input, return_tensors="pt")
+        input_ids = self.tokenizer_en_de.encode(input, return_tensors="pt").to(self.device)
         outputs = self.model_en_de.generate(input_ids)
         decoded = self.tokenizer_en_de.decode(outputs[0], skip_special_tokens=True)
         if self.verbose:
@@ -59,18 +59,18 @@ class TextDiversityParaphraser:
         try:
             de = self.en2de(en)
             en_new = self.select_candidates(de, en)
-        except Exception:
+        except Exception as e:
             if self.verbose:
-                print("Returning Default due to Run Time Exception")
+                print("Returning Default due to Run Time Exception:", e)
             en_new = [en for _ in range(self.num_outputs)]
         return en_new
 
     def select_candidates(self, input: str, sentence: str):
-        input_ids = self.tokenizer_de_en.encode(input, return_tensors="pt")
+        input_ids = self.tokenizer_de_en.encode(input, return_tensors="pt").to(self.device)
         outputs = self.model_de_en.generate(
             input_ids,
-            num_return_sequences=self.num_outputs * 5,
-            num_beams=self.num_outputs * 5,
+            num_return_sequences=self.num_outputs * 10,
+            num_beams=self.num_outputs * 10,
         )
 
         predicted_outputs = []
@@ -94,34 +94,6 @@ class TextDiversityParaphraser:
             if self.verbose:
                 print("Error in SubmodularOpt: {}".format(e))
             predicted_outputs = decoded[: self.num_outputs]
-
-        if self.verbose:
-            print(predicted_outputs)
-
-        return predicted_outputs
-
-    def generate_diverse_beam(self, sentence: str):
-        input_ids = self.tokenizer_de_en.encode(sentence, return_tensors="pt")
-
-        try:
-            outputs = self.model_de_en.generate(
-                input_ids,
-                num_return_sequences=self.num_outputs,
-                num_beam_groups=2,
-                num_beams=self.num_outputs,
-            )
-        except:
-            outputs = self.model_de_en.generate(
-                input_ids,
-                num_return_sequences=self.num_outputs,
-                num_beam_groups=1,
-                num_beams=self.num_outputs,
-            )
-
-        predicted_outputs = [
-            self.tokenizer_de_en.decode(output, skip_special_tokens=True)
-            for output in outputs
-        ]
 
         if self.verbose:
             print(predicted_outputs)

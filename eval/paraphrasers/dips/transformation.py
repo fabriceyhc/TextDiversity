@@ -14,11 +14,12 @@ class DiPSParaphraser:
         self.augmenter = augmenter
         self.num_outputs = num_outputs
         self.verbose = verbose
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         random.seed(seed)
         np.random.seed(seed)
         torch.manual_seed(seed)
-        torch.use_deterministic_algorithms(True)
+        # torch.use_deterministic_algorithms(True)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
 
@@ -34,28 +35,28 @@ class DiPSParaphraser:
                 "Primary options for augmenter : {}. \n".format(str(choices))
             )
             print(
-                "Default: augmenter='dips', num_outputs=3. Change using DiverseParaphrase(augmenter=<option>, num_outputs=<num_outputs>)\n"
+                "Default: augmenter='dips', num_outputs=3. Change using DiPSParaphraser(augmenter=<option>, num_outputs=<num_outputs>)\n"
             )
-            print("Starting to load English to German Translation Model.\n")
+            print("Starting to load English to German Translation Model.")
 
         name_en_de = "facebook/wmt19-en-de"
         self.tokenizer_en_de = FSMTTokenizer.from_pretrained(name_en_de)
         self.model_en_de = FSMTForConditionalGeneration.from_pretrained(
             name_en_de
-        )
+        ).to(self.device)
 
         if self.verbose:
-            print("Completed loading English to German Translation Model.\n")
-            print("Starting to load German to English Translation Model:")
+            print("Completed loading English to German Translation Model.")
+            print("Starting to load German to English Translation Model.")
 
         name_de_en = "facebook/wmt19-de-en"
         self.tokenizer_de_en = FSMTTokenizer.from_pretrained(name_de_en)
         self.model_de_en = FSMTForConditionalGeneration.from_pretrained(
             name_de_en
-        )
+        ).to(self.device)
 
         if self.verbose:
-            print("Completed loading German to English Translation Model.\n")
+            print("Completed loading German to English Translation Model.")
 
         self.augmenter = augmenter
         if self.augmenter == "dips":
@@ -63,11 +64,11 @@ class DiPSParaphraser:
                 print("Loading word2vec gensim model. Please wait...")
             trigger_dips()
             if self.verbose:
-                print("Completed loading word2vec gensim model.\n")
+                print("Completed loading word2vec gensim model.")
         self.num_outputs = num_outputs
 
     def en2de(self, input):
-        input_ids = self.tokenizer_en_de.encode(input, return_tensors="pt")
+        input_ids = self.tokenizer_en_de.encode(input, return_tensors="pt").to(self.device)
         outputs = self.model_en_de.generate(input_ids)
         decoded = self.tokenizer_en_de.decode(
             outputs[0], skip_special_tokens=True
@@ -77,24 +78,24 @@ class DiPSParaphraser:
         return decoded
 
     def generate_diverse(self, en: str):
-        try:
-            de = self.en2de(en)
-            if self.augmenter == "diverse_beam":
-                en_new = self.generate_diverse_beam(de)
-            else:
-                en_new = self.select_candidates(de, en)
-        except Exception:
-            if self.verbose:
-                print("Returning Default due to Run Time Exception")
-            en_new = [en for _ in range(self.num_outputs)]
+        # try:
+        de = self.en2de(en)
+        if self.augmenter == "diverse_beam":
+            en_new = self.generate_diverse_beam(de)
+        else:
+            en_new = self.select_candidates(de, en)
+        # except Exception as e:
+        #     if self.verbose:
+        #         print("Returning Default due to Run Time Exception", e)
+        #     en_new = [en for _ in range(self.num_outputs)]
         return en_new
 
     def select_candidates(self, input: str, sentence: str):
-        input_ids = self.tokenizer_de_en.encode(input, return_tensors="pt")
+        input_ids = self.tokenizer_de_en.encode(input, return_tensors="pt").to(self.device)
         outputs = self.model_de_en.generate(
             input_ids,
-            num_return_sequences=self.num_outputs * 5,
-            num_beams=self.num_outputs * 5,
+            num_return_sequences=self.num_outputs * 10,
+            num_beams=self.num_outputs * 10,
         )
 
         predicted_outputs = []

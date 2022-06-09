@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # custom folders
-eval/paraphrasers/.vector_cache/*
+*/.vector_cache/*
