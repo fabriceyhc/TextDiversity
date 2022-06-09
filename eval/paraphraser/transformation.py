@@ -7,9 +7,9 @@ from transformers import FSMTForConditionalGeneration, FSMTTokenizer
 from .submod.submodopt import SubmodularOpt
 
 
-class DiverseParaphrase:
+class TextDiversityParaphraser:
 
-    def __init__(self, augmenter="textdiv", num_outputs=3, seed=42, verbose=True):
+    def __init__(self, augmenter="textdiv", num_outputs=3, seed=42, verbose=False):
         self.augmenter = augmenter
         self.num_outputs = num_outputs
         self.verbose = verbose
@@ -53,10 +53,10 @@ class DiverseParaphrase:
         self.augmenter = augmenter
         if self.augmenter == "textdiv":
             if self.verbose:
-                print("Initializing textdiv classes. Please wait...")
+                print("Initializing textdiv instances. Please wait...")
             self.subopt = SubmodularOpt()
             if self.verbose:
-                print("Completed initializing textdiv classes.")
+                print("Completed initializing textdiv instances.")
         self.num_outputs = num_outputs
 
     def en2de(self, input):
@@ -157,6 +157,6 @@ if __name__ == '__main__':
 
     text = 'She sells seashells by the seashore.'
 
-    transform_fn = DiverseParaphrase(augmenter='textdiv', num_outputs=3)
+    transform_fn = TextDiversityParaphraser(augmenter='textdiv', num_outputs=3)
     paraphrases = transform_fn.generate(text)
     print(paraphrases)

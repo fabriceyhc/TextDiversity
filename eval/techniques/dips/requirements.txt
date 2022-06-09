@@ -1,3 +1,0 @@
-# for diverse paraphrase dips
-nltk==3.6.2
-torchtext
