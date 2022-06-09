@@ -27,7 +27,7 @@ Some of the text diversity measures rely on software that must be installed sepa
 
 1. Phoneme Diversity
    - Phonemizer
-      - `sudo apt-get install festival espeak-ng mbrola`
+      - `sudo apt-get install espeak-ng`
 2. Syntactical Diversity
    - Dependency Parse Tree Visualization (non-core functionality)
       - `sudo apt-get install python3-dev graphviz libgraphviz-dev pkg-config`
