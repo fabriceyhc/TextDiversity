@@ -32,33 +32,6 @@ from ..utils import *
 def align_and_score(seq1, seq2):
     return Align.PairwiseAligner().align(seq1, seq2).score
 
-def get_phonemes(corpus, return_counts=True):
-    # remove all the punctuation from the text, considering only the specified
-    # punctuation marks
-    text = Punctuation(';:,.!"?()-/><').remove(corpus)
-
-    # build the set of all the words in the text
-    words = {w.lower() for line in text for w in line.strip().split(' ') if w}
-
-    # initialize the espeak backend for English
-    backend = EspeakBackend('en-us', words_mismatch='ignore')
-
-    # separate phones by a space and ignoring words boundaries
-    separator = Separator(phone=' ', word=None)
-
-    # build the lexicon by phonemizing each word one by one. The backend.phonemize
-    # function expect a list as input and outputs a list.
-    lexicon = {
-        word : backend.phonemize([word], separator=separator, strip=True)[0]
-        for word in words} 
-
-    if return_counts:
-        phoneme_counts = Counter(" ".join(lexicon.values()).split(" "))
-        del phoneme_counts[" "]
-        return lexicon, phoneme_counts
-    
-    return lexicon 
-
 # ==================================================================================
 
 class RhythmicDiversity(TextDiversity):
@@ -168,10 +141,35 @@ class PhonemicDiversity(TextDiversity):
         csv_path = os.path.join(file_dir, '../similarities/phoneme_similarities.csv')
         self.Z = pd.read_csv(csv_path, index_col=0)
 
+        # phonemizer
+        self.backend = EspeakBackend('en-us', words_mismatch='ignore')
+        self.separator = Separator(phone=' ', word=None)
+
+    def get_phonemes(self, corpus, return_counts=True):
+        # remove all the punctuation from the text, considering only the specified
+        # punctuation marks
+        text = Punctuation(';:,.!"?()-/><').remove(corpus)
+
+        # build the set of all the words in the text
+        words = {w.lower() for line in text for w in line.strip().split(' ') if w}
+
+        # build the lexicon by phonemizing each word one by one. The backend.phonemize
+        # function expect a list as input and outputs a list.
+        lexicon = {
+            word : self.backend.phonemize([word], separator=self.separator, strip=True)[0]
+            for word in words} 
+
+        if return_counts:
+            phoneme_counts = Counter(" ".join(lexicon.values()).split(" "))
+            del phoneme_counts[" "]
+            return lexicon, phoneme_counts
+        
+        return lexicon 
+
     def extract_features(self, corpus):
 
         # get phonemes
-        lexicon, phoneme_counts = get_phonemes(corpus)
+        lexicon, phoneme_counts = self.get_phonemes(corpus)
 
         # TODO: Think of a more elegant way of doing this...
         #       The phonemic diversity calculation doesn't follow
