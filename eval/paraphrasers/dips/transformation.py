@@ -155,6 +155,9 @@ class DiPSParaphraser:
         candidates = self.generate_diverse(sentence)
         return candidates
 
+    def __call__(self, text):
+        return self.generate(text)
+
 if __name__ == '__main__':
 
     text = 'She sells seashells by the seashore.'

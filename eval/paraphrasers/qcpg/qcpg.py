@@ -15,7 +15,7 @@ class QCPGParaphraser:
             'questions': {'lex': [0, 90], 'syn': [0, 75], 'sem': [0, 95]}
         }[type]
 
-    def __call__(self, text, lexical, syntactic, semantic, **kwargs):
+    def __call__(self, text, lexical=0.3, syntactic=0.5, semantic=0.8, **kwargs):
         assert all([0 <= val <= 1 for val in [lexical, syntactic, semantic]]), \
                  f' control values must be between 0 and 1, got {lexical}, {syntactic}, {semantic}'
         names = ['semantic_sim', 'lexical_div', 'syntactic_div']

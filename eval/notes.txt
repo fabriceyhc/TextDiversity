@@ -1,0 +1,5 @@
+# notes
+
+## generate_data.py cmds
+
+python eval/generate_data.py --dataset-config paws labeled_final
