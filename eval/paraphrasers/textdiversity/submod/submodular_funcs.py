@@ -223,7 +223,7 @@ def info_gain(s, orig_count, ref_count, base_score=0.0):
 
 ########################################### TEXTDIV FUNCTIONS #######################################################
 
-def div_helper(candidate_text, input_text, diversity_metric, normalize=False):
+def div_helper(candidate_text, input_text, diversity_metric, normalize=True):
 
     # set normalization config
     diversity_metric.config['normalize'] = normalize
@@ -232,16 +232,22 @@ def div_helper(candidate_text, input_text, diversity_metric, normalize=False):
     corpus = [input_text, candidate_text]
 
     # calculate diversity score
+    start_time = time.time()
     score = diversity_metric(corpus)
+    run_time = time.time() - start_time
+    print(f'{diversity_metric.__class__.__name__} run_time: {run_time}')
 
     return score
 
-def sim_helper(candidate_text, input_text, diversity_metric, normalize=False):
+def sim_helper(candidate_text, input_text, diversity_metric, normalize=True):
 
     # join texts into a "corpus"
     corpus = [input_text, candidate_text]
 
     # calculate similarity score
+    start_time = time.time()
     score = diversity_metric.similarity(corpus)
+    run_time = time.time() - start_time
+    print(f'{diversity_metric.__class__.__name__} run_time: {run_time}')
 
     return score
