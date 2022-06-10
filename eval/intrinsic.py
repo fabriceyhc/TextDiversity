@@ -160,7 +160,7 @@ class FidelityEvaluator:
         for fn in fns:
             metric_name = fn.__class__.__name__
             print(f'Working on {metric_name}...')
-            results = fn.compute(candidates=candidates,
+            results = fn.compute(predictions=predictions,
                                  references=references)
             if metric_name == 'Meteor':
                 score = results['meteor']
@@ -208,7 +208,7 @@ for run_num in range(args.num_runs):
         paraphrases = paraphraser(text_to_paraphrase)
         print('paraphrases:', paraphrases)
         div_eval_results = div_evaluator(paraphrases)
-        fid_eval_results = fid_evaluator([text_to_paraphrase] * args.num_eval, paraphrases)
+        fid_eval_results = fid_evaluator(paraphrases, [text_to_paraphrase] * args.num_eva;)
         out = div_eval_results | fid_eval_results
         run_time = time.time() - start_time
 
