@@ -49,7 +49,7 @@ class TextDiversityParaphraser:
 
     def en2de(self, input):
         input_ids = self.tokenizer_en_de.encode(input, return_tensors="pt").to(self.device)
-        outputs = self.model_en_de.generate(input_ids)
+        outputs = self.model_en_de.generate(input_ids).cpu()
         decoded = self.tokenizer_en_de.decode(outputs[0], skip_special_tokens=True)
         if self.verbose:
             print(decoded)
@@ -71,7 +71,7 @@ class TextDiversityParaphraser:
             input_ids,
             num_return_sequences=self.num_outputs * 10,
             num_beams=self.num_outputs * 10,
-        )
+        ).cpu()
 
         predicted_outputs = []
         decoded = [

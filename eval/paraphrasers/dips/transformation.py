@@ -69,7 +69,7 @@ class DiPSParaphraser:
 
     def en2de(self, input):
         input_ids = self.tokenizer_en_de.encode(input, return_tensors="pt").to(self.device)
-        outputs = self.model_en_de.generate(input_ids)
+        outputs = self.model_en_de.generate(input_ids).cpu()
         decoded = self.tokenizer_en_de.decode(
             outputs[0], skip_special_tokens=True
         )
@@ -96,7 +96,7 @@ class DiPSParaphraser:
             input_ids,
             num_return_sequences=self.num_outputs * 10,
             num_beams=self.num_outputs * 10,
-        )
+        ).cpu()
 
         predicted_outputs = []
         decoded = [
@@ -133,14 +133,14 @@ class DiPSParaphraser:
                 num_return_sequences=self.num_outputs,
                 num_beam_groups=2,
                 num_beams=self.num_outputs,
-            )
+            ).cpu()
         except Exception:
             outputs = self.model_de_en.generate(
                 input_ids,
                 num_return_sequences=self.num_outputs,
                 num_beam_groups=1,
                 num_beams=self.num_outputs,
-            )
+            ).cpu()
 
         predicted_outputs = [
             self.tokenizer_de_en.decode(output, skip_special_tokens=True)
