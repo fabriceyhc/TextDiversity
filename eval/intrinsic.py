@@ -208,7 +208,7 @@ for run_num in range(args.num_runs):
         paraphrases = paraphraser(text_to_paraphrase)
         print('paraphrases:', paraphrases)
         div_eval_results = div_evaluator(paraphrases)
-        fid_eval_results = fid_evaluator(paraphrases, [text_to_paraphrase] * args.num_eva;)
+        fid_eval_results = fid_evaluator(paraphrases, [text_to_paraphrase] * args.num_eval)
         out = div_eval_results | fid_eval_results
         run_time = time.time() - start_time
 
