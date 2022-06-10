@@ -160,8 +160,8 @@ class FidelityEvaluator:
         for fn in fns:
             metric_name = fn.__class__.__name__
             print(f'Working on {metric_name}...')
-            results = fn(candidates=candidates,
-                         references=references)
+            results = fn.compute(candidates=candidates,
+                                 references=references)
             if metric_name == 'Meteor':
                 score = results['meteor']
             elif metric_name == 'BLEURT':
