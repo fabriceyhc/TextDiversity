@@ -43,7 +43,7 @@ parser.add_argument('--gpus', default='0,1,2,3', type=str,
 parser.add_argument('--num_runs', default=1, type=int, metavar='N',
                     help='number of times to repeat the training')
 parser.add_argument('--techniques', nargs='+', 
-                    default=['orig', 'textdiv', 'dips', 'beam', 'diverse_beam', 'random'], # , 'qcpg', 'sowreap'
+                    default=['orig', 'dips', 'beam', 'diverse_beam', 'random'], #  'textdiv', 'qcpg', 'sowreap'
                     type=str, help='technique used to generate paraphrases')
 parser.add_argument('--dataset-config', nargs='+', default=['paws', 'labeled_final'],
                     type=str, help='dataset info needed for load_dataset.')
@@ -141,6 +141,12 @@ for run_arg in run_args[start_position:]:
         # special handling since sst2 has no test labels
         eval_dataset  = load_dataset(*args.dataset_config, split='validation')
         test_valid = eval_dataset.train_test_split(test_size=0.5)
+        eval_dataset  = test_valid['test']
+        test_dataset  = test_valid['train']
+    elif 'banking77' in args.dataset_config:
+        # special handling since banking77 has no validation split
+        test_dataset  = load_dataset(*args.dataset_config, split='test')
+        test_valid = test_dataset.train_test_split(test_size=0.5)
         eval_dataset  = test_valid['test']
         test_dataset  = test_valid['train']
     else:
