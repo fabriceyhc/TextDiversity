@@ -54,7 +54,7 @@ class SubmodularOpt:
         # diversity functions
         self.posdiv_fn = POSSequenceDiversity()
         self.rhydiv_fn = RhythmicDiversity()
-        # self.phodiv_fn = PhonemicDiversity()
+        self.phodiv_fn = PhonemicDiversity()
         self.depdiv_fn = DependencyDiversity()
 
     def initialize_function(self, 
@@ -94,7 +94,7 @@ class SubmodularOpt:
         # diversity weights
         self.w_posdiv = w_posdiv
         self.w_rhydiv = w_rhydiv
-        # self.w_phodiv = w_phodiv
+        self.w_phodiv = w_phodiv
         self.w_posdiv = w_posdiv
 
     def final_func(self, pos_sets, rem_list, selec_set, normalize=False):
@@ -111,15 +111,15 @@ class SubmodularOpt:
             # diversities
             posdiv_scores.append(div_helper(doc, self.v, self.posdiv_fn, normalize))
             rhydiv_scores.append(div_helper(doc, self.v, self.rhydiv_fn, normalize))
-            # phodiv_scores.append(div_helper(doc, self.v, self.phodiv_fn, normalize))
+            phodiv_scores.append(div_helper(doc, self.v, self.phodiv_fn, normalize))
             depdiv_scores.append(div_helper(doc, self.v, self.depdiv_fn, normalize))
 
         sim_score = self.w_toksim * np.array(toksim_scores) \
                   + self.w_docsim * np.array(docsim_scores)
         div_score = self.w_posdiv * np.array(posdiv_scores) \
                   + self.w_rhydiv * np.array(rhydiv_scores) \
+                  + self.w_phodiv * np.array(phodiv_scores) \
                   + self.w_posdiv * np.array(depdiv_scores) 
-                  # + self.w_phodiv * np.array(phodiv_scores) \
 
         final_score = self.lam * sim_score + (1 - self.lam) * div_score
 
