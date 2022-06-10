@@ -65,8 +65,11 @@ class RhythmicDiversity(TextDiversity):
         for s in sentences:
             prose = cd.Prose(s)
             df = prose.sylls().reset_index()
-            rhythm = df[df['word_ipa_i'] == 1][['syll_stress', 'syll_weight']].values
-            rhythm = ["".join(row) for row in rhythm]
+            if all([c in df.columns for c in ['syll_stress', 'syll_weight']]):
+                rhythm = df[df['word_ipa_i'] == 1][['syll_stress', 'syll_weight']].values
+                rhythm = ["".join(row) for row in rhythm]
+            else:
+                rhythm = [""]
             rhythms.append(rhythm)
 
         # compute max seq length for padding / normalization later
@@ -199,8 +202,8 @@ class PhonemicDiversity(TextDiversity):
 if __name__ == '__main__':
 
     # TEST
-    lo_div = ['one massive earth', 'an enormous globe', 'the colossal world']
-    hi_div = ['basic human right', 'you were right', 'make a right']
+    lo_div = ['one massive earth', 'an enormous globe', 'the colossal world', '_']
+    hi_div = ['basic human right', 'you were right', 'make a right', '_']
 
     # diversities
     print("diversities")
