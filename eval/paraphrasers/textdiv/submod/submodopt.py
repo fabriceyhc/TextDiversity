@@ -55,14 +55,17 @@ class SubmodularOpt:
         self.phodiv_fn = PhonemicDiversity()
         self.depdiv_fn = DependencyDiversity()
 
+        # print('self.toksim_fn.device', self.toksim_fn.device)
+        # print('self.docsim_fn.device', self.docsim_fn.device)
+
     def initialize_function(self, 
                             lam = 0.5, 
                             w_toksim = 1.0,
                             w_docsim = 1.0,
-                            w_posdiv = 1.0, 
-                            w_rhydiv = 1.0, 
-                            w_phodiv = 1.0, 
-                            w_depdiv = 1.0):
+                            w_posdiv = 0.5, 
+                            w_rhydiv = 0.5, 
+                            w_phodiv = 0.5, 
+                            w_depdiv = 0.5):
         """
         Parameters
         ---
@@ -112,6 +115,13 @@ class SubmodularOpt:
             phodiv_scores.append(div_helper(doc, self.v, self.phodiv_fn, normalize))
             depdiv_scores.append(div_helper(doc, self.v, self.depdiv_fn, normalize))
 
+        # print('toksim_scores', toksim_scores) 
+        # print('docsim_scores', docsim_scores)
+        # print('posdiv_scores', posdiv_scores)
+        # print('rhydiv_scores', rhydiv_scores)
+        # print('phodiv_scores', phodiv_scores)
+        # print('depdiv_scores', depdiv_scores)
+
         sim_score = self.w_toksim * np.array(toksim_scores) \
                   + self.w_docsim * np.array(docsim_scores)
         div_score = self.w_posdiv * np.array(posdiv_scores) \
@@ -120,6 +130,8 @@ class SubmodularOpt:
                   + self.w_posdiv * np.array(depdiv_scores) 
 
         final_score = self.lam * sim_score + (1 - self.lam) * div_score
+
+        # print(final_score)
 
         return final_score
 
