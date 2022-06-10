@@ -1,0 +1,7 @@
+,eval_loss,eval_accuracy,eval_runtime,eval_samples_per_second,eval_steps_per_second,epoch,run_name,model_name,run_num,technique,dataset_config,run_time
+0,0.1777966320514679,0.9375,0.0318,503.643,31.478,6.81,./pretrained/roberta-base-snips_built_in_intents_orig,roberta-base,0,orig,['snips_built_in_intents'],49.55962824821472
+1,0.0017162095755338669,1.0,0.158,417.806,31.652,6.95,./pretrained/roberta-base-snips_built_in_intents_textdiv,roberta-base,0,textdiv,['snips_built_in_intents'],142.33400011062622
+2,0.0018456571269780397,1.0,0.183,360.693,27.325,6.95,./pretrained/roberta-base-snips_built_in_intents_dips,roberta-base,0,dips,['snips_built_in_intents'],147.49981474876404
+3,0.0017162095755338669,1.0,0.2167,304.589,23.075,6.95,./pretrained/roberta-base-snips_built_in_intents_beam,roberta-base,0,beam,['snips_built_in_intents'],150.80934524536133
+4,0.001766349421814084,1.0,0.252,261.926,19.843,6.95,./pretrained/roberta-base-snips_built_in_intents_diverse_beam,roberta-base,0,diverse_beam,['snips_built_in_intents'],153.18086004257202
+5,0.0008884526323527098,1.0,0.1862,354.441,26.852,7.95,./pretrained/roberta-base-snips_built_in_intents_random,roberta-base,0,random,['snips_built_in_intents'],174.47337818145752

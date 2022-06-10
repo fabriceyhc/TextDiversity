@@ -1,6 +1,7 @@
 import os
 import argparse
 
+import torch
 from datasets import load_dataset, concatenate_datasets, load_from_disk
 
 from paraphrasers import (
@@ -16,6 +17,8 @@ parser = argparse.ArgumentParser(description='TextDiversity Paraphrase Dataset G
 
 parser.add_argument('--dataset-config', nargs='+', default=['paws', 'labeled_final'],
                     type=str, help='dataset info needed for load_dataset.')
+parser.add_argument('--dataset-keys', nargs='+', default=['sentence1', 'sentence2'],
+                    type=str, help='dataset info needed for load_dataset.')
 parser.add_argument('--data-dir', type=str, default="./prepared_datasets/",
                     help='directory in which to save the augmented data')
 parser.add_argument('--num-outputs', default=3, type=int, metavar='N',
@@ -23,7 +26,7 @@ parser.add_argument('--num-outputs', default=3, type=int, metavar='N',
 parser.add_argument('--batch-size', default=10, type=int, metavar='N',
                     help='number of inputs to proccess per iteration')
 parser.add_argument('--techniques', nargs='+', 
-                    default=['beam', 'diverse_beam', 'random', 'dips', 'textdiv'], # 'qcpg', 'sowreap'
+                    default=['dips', 'beam', 'diverse_beam', 'random'], # 'textdiv', 'qcpg', 'sowreap'
                     type=str, help='technique used to generate paraphrases')
 # parser.add_argument('--num-train-per-class', nargs='+', default=[10, 200, 2500], type=int, 
 #                     help='number of training examples per class')
@@ -64,28 +67,44 @@ class DatasetAugmenter:
         self.transform_fn.num_outputs = self.num_outputs
 
     def __call__(self, batch):
-        new_sentence1, new_sentence2, new_targets = [], [], []
-        for s1, s2, t in zip(batch['sentence1'], batch['sentence2'], batch['label']):
-            new_sentence1.extend(self.transform_fn(s1))
-            new_sentence2.extend(self.transform_fn(s2))
-            new_targets.extend([t] * self.num_outputs)
-        return {"sentence1": new_sentence1, 
-                "sentence2": new_sentence2, 
-                "label": new_targets}
+        if len(args.dataset_keys) == 1:
+            new_text, new_targets = [], []
+            for s1, t in zip(batch[args.dataset_keys[0]], batch['label']):
+                new_text.extend(self.transform_fn(s1))
+                new_targets.extend([t] * self.num_outputs)
+            return {args.dataset_keys[0]: new_text, 
+                    "label": new_targets}
+        elif len(args.dataset_keys) == 2:  
+            new_text1, new_text2, new_targets = [], [], []
+            for s1, s2, t in zip(batch[args.dataset_keys[0]], 
+                                 batch[args.dataset_keys[1]], 
+                                 batch['label']):
+                new_text1.extend(self.transform_fn(s1))
+                new_text2.extend(self.transform_fn(s2))
+                new_targets.extend([t] * self.num_outputs)
+            return {args.dataset_keys[0]: new_text1, 
+                    args.dataset_keys[1]: new_text2, 
+                    "label": new_targets}
+        else:
+            raise ValueError("Unsupported number of dataset-keys. Should be either 1 or 2.")
 
 
 # load dataset and process
 dataset = load_dataset(*args.dataset_config, split='train') 
+# ugly way of standardizing dataset column names
 try:
-    # we assume dataset contains sentence1 & sentence2
-    # glue.qqp uses question instead, rename
-    # all others are unhandled for now...
+    # for glue.qqp
     dataset = dataset.rename_column("question1", "sentence1")
     dataset = dataset.rename_column("question2", "sentence2")
 except:
     pass
+try:
+    # for glue.sst2
+    dataset = dataset.rename_column("sentence", "text")
+except:
+    pass
 
-key_columns = ['sentence1', 'sentence2', 'label']
+key_columns = ['text', 'sentence1', 'sentence2', 'label']
 columns_to_remove = [c for c in dataset.column_names if c not in key_columns]
 dataset = dataset.remove_columns(columns_to_remove)
 
@@ -120,8 +139,7 @@ for technique in args.techniques:
     assert original_dataset_len * args.num_outputs == updated_dataset_len
 
     # check for new data actually being paraphrases (not duplicates)
-    assert len(set(updated_dataset[-args.num_outputs:]['sentence1'])) > 1 \
-        or len(set(updated_dataset[-args.num_outputs:]['sentence2'])) > 1
+    assert len(set(updated_dataset[-args.num_outputs:][args.dataset_keys[0]])) > 1 
 
     if args.keep_original:
         updated_dataset = concatenate_datasets([dataset, updated_dataset])
@@ -132,3 +150,5 @@ for technique in args.techniques:
     # print examples of updated dataset just to be sure they're as expected
     num_to_check = args.num_outputs * 3
     print('example:', updated_dataset[-num_to_check:])
+
+    torch.cuda.empty_cache()

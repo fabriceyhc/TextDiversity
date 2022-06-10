@@ -125,7 +125,7 @@ class DiPSParaphraser:
         return predicted_outputs
 
     def generate_diverse_beam(self, sentence: str):
-        input_ids = self.tokenizer_de_en.encode(sentence, return_tensors="pt")
+        input_ids = self.tokenizer_de_en.encode(sentence, return_tensors="pt").to(self.device)
 
         try:
             outputs = self.model_de_en.generate(

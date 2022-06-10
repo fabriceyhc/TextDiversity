@@ -130,3 +130,5 @@ dmypy.json
 
 # custom folders
 */.vector_cache/*
+*/pretrained/*
+*/prepared_datasets/*

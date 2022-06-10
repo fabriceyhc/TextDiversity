@@ -1,5 +1,34 @@
 # notes
 
+## tmux
+
+### create new session
+tmux
+
+### attach to existing session
+tmux a -t 0 # 1,2,3
+
+### environment setup 
+
+conda activate textdiv
+export CUDA_VISIBLE_DEVICES=1 # 0,1,2,3
+
+## monitoring
+
+watch -n 1 nvidia-smi
+
 ## generate_data.py cmds
 
-python eval/generate_data.py --dataset-config paws labeled_final
+### single input datasets
+python generate_data.py --dataset-config snips_built_in_intents --dataset-keys text
+python generate_data.py --dataset-config banking77 --dataset-keys text
+
+### two input datasets
+python generate_data.py --dataset-config paws labeled_final
+python generate_data.py --dataset-config glue mrpc
+python generate_data.py --dataset-config glue qqp
+
+## train.py cmds
+python train.py --dataset-config snips_built_in_intents --dataset-keys text --gpus 0 --save-file train_results_snips_built_in_intents.csv
+
+python train.py --dataset-config banking77 --dataset-keys text --gpus 0 --save-file train_results_banking77.csv

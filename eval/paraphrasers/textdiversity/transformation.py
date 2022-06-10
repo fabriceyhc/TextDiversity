@@ -26,7 +26,7 @@ class TextDiversityParaphraser:
 
         name_en_de = "facebook/wmt19-en-de"
         self.tokenizer_en_de = FSMTTokenizer.from_pretrained(name_en_de)
-        self.model_en_de = FSMTForConditionalGeneration.from_pretrained(name_en_de)
+        self.model_en_de = FSMTForConditionalGeneration.from_pretrained(name_en_de).to(self.device)
 
         if self.verbose:
             print("Completed loading English to German Translation Model.")
@@ -34,7 +34,7 @@ class TextDiversityParaphraser:
 
         name_de_en = "facebook/wmt19-de-en"
         self.tokenizer_de_en = FSMTTokenizer.from_pretrained(name_de_en)
-        self.model_de_en = FSMTForConditionalGeneration.from_pretrained(name_de_en)
+        self.model_de_en = FSMTForConditionalGeneration.from_pretrained(name_de_en).to(self.device)
 
         if self.verbose:
             print("Completed loading German to English Translation Model.")
