@@ -21,7 +21,7 @@ watch -n 1 nvidia-smi
 
 ### single input datasets
 python generate_data.py --dataset-config snips_built_in_intents --dataset-keys text
-python generate_data.py --dataset-config banking77 --dataset-keys text
+python generate_data.py --dataset-config banking77 --dataset-keys text --techniques textdiv
 
 ### two input datasets
 python generate_data.py --dataset-config paws labeled_final
@@ -30,5 +30,9 @@ python generate_data.py --dataset-config glue qqp
 
 ## train.py cmds
 python train.py --dataset-config snips_built_in_intents --dataset-keys text --gpus 0 --save-file train_results_snips_built_in_intents.csv
-
 python train.py --dataset-config banking77 --dataset-keys text --gpus 0 --save-file train_results_banking77.csv
+python train.py --dataset-config tweet_eval emotion --dataset-keys text --gpus 0 --save-file train_results_tweet_eval_emotion.csv
+python train.py --dataset-config glue mrpc --gpus 0 --save-file train_results_glue_mrpc.csv
+
+## intrinsic.py cmds
+python intrinsic.py --dataset-config snips_built_in_intents --dataset-keys text --num-runs 100
