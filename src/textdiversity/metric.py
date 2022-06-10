@@ -114,7 +114,7 @@ class TextDiversity(DiversityMetric):
         Z = self.calculate_similarities(features)
 
         # calculate similarity score
-        similarity = Z.sum() / len(Z)
+        similarity = Z.sum() / (len(Z) ** 2)
         
         return similarity
 
