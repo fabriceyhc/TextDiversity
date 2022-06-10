@@ -45,9 +45,9 @@ parser = argparse.ArgumentParser(description='TextDiversity Trainer')
 
 parser.add_argument('--data-dir', type=str, default="./prepared_datasets/",
                     help='path to data folders')
-parser.add_argument('--num_runs', default=1, type=int, metavar='N',
+parser.add_argument('--num-runs', default=1, type=int, metavar='N',
                     help='number of times to repeat the training')
-parser.add_argument('--num-eval', default=10, type=int, metavar='N',
+parser.add_argument('--num-eval', default=5, type=int, metavar='N',
                     help='number of samples to draw from the dataset for evaluation')
 parser.add_argument('--techniques', nargs='+', 
                     default=['orig', 'dips', 'beam', 'diverse_beam', 'random','textdiv'], # , 'qcpg', 'sowreap'
@@ -87,7 +87,7 @@ def distinct_ngrams(corpus, n):
 
 
 class Paraphraser:
-    def __init__(self, technique='textdiv', num_outputs=10):
+    def __init__(self, technique='textdiv', num_outputs=5):
         self.technique = technique
         
         if self.technique == 'orig':
@@ -149,14 +149,14 @@ class FidelityEvaluator:
     def __init__(self):
         self.sacrebleu = evaluate.load("sacrebleu")
         self.meteor = evaluate.load('meteor')
-        self.bleurt = evaluate.load('bleurt', 'bleurt-large-512')
+        # self.bleurt = evaluate.load('bleurt', 'bleurt-large-512')
 
-    def __call__(self, candidates, references):
+    def __call__(self, predictions, references):
 
         results = {}
 
         # huggingface evaluate fns
-        fns = [self.sacrebleu, self.meteor, self.bleurt]
+        fns = [self.sacrebleu, self.meteor] # , self.bleurt
         for fn in fns:
             metric_name = fn.__class__.__name__
             print(f'Working on {metric_name}...')
