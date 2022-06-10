@@ -150,7 +150,7 @@ class FidelityEvaluator:
     def __init__(self):
         self.sacrebleu = evaluate.load("sacrebleu")
         self.meteor = evaluate.load('meteor')
-        self.bleurt = evaluate.load('bleurt', 'bleurt-large-512')
+        self.bleurt = evaluate.load('bleurt')
 
     def __call__(self, predictions, references):
 
@@ -161,14 +161,14 @@ class FidelityEvaluator:
         for fn in fns:
             metric_name = fn.__class__.__name__
             print(f'Working on {metric_name}...')
-            results = fn.compute(predictions=predictions,
+            scoring = fn.compute(predictions=predictions,
                                  references=references)
             if metric_name == 'Meteor':
-                score = results['meteor']
+                score = scoring['meteor']
             elif metric_name == 'BLEURT':
-                score = np.mean(results['scores'])
+                score = np.mean(scoring['scores'])
             elif metric_name == 'Sacrebleu':
-                score = results['score']
+                score = scoring['score']
             results[metric_name] = score
         return results
 
@@ -179,11 +179,14 @@ class FidelityEvaluator:
 div_evaluator = DiversityEvaluator()
 fid_evaluator = FidelityEvaluator()
 
+train_dataset = load_dataset(*args.dataset_config, split='train')
+
 results = []
 for run_num in range(args.num_runs):
 
-    train_dataset = load_dataset(*args.dataset_config, split='train')
-    row_to_paraphrase = train_dataset.shuffle()[0]
+    # select random data to analyze
+    idx = random.randint(0, len(train_dataset))
+    row_to_paraphrase = train_dataset.select([idx])[0]
 
     if len(args.dataset_keys) == 1:
         sentence1_key, sentence2_key = args.dataset_keys[0], None
