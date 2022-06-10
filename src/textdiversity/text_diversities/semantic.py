@@ -52,7 +52,7 @@ class TokenSemanticDiversity(TextDiversity):
         # TokenSemanticDiversity configs
         'MODEL_NAME': "bert-base-uncased", # "roberta-base", "microsoft/deberta-large", # "bert-base-uncased", # "facebook/bart-large-cnn",
         'batch_size': 16,
-        'use_gpu': False,
+        'use_gpu': True,
         'n_components': None 
     }
 
@@ -204,7 +204,6 @@ class TokenEmbeddingDiversity(TextDiversity):
         # TokenEmbeddingDiversity configs
         'EMBEDDING': 'word2vec-google-news-300', # glove-wiki-gigaword-300, fasttext-wiki-news-subwords-300, 'word2vec-google-news-300'
         'batch_size': 16,
-        'use_gpu': False,
         'n_components': None  
     }
 
@@ -322,7 +321,7 @@ class STokenSemanticDiversity(TextDiversity):
         'verbose': False,
         # SentenceSemanticDiversity configs
         'MODEL_NAME':"bert-large-nli-stsb-mean-tokens",
-        'use_gpu': False,
+        'use_gpu': True,
         'n_components': None 
     }
 
@@ -447,7 +446,7 @@ class DocumentSemanticDiversity(TextDiversity):
         'verbose': False,
         # DocumentSemanticDiversity configs
         'MODEL_NAME': "princeton-nlp/sup-simcse-roberta-large", # "bert-large-nli-stsb-mean-tokens",
-        'use_gpu': False,
+        'use_gpu': True,
         'n_components': None
     }
 
