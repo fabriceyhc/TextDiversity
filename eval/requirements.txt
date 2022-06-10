@@ -1,3 +1,6 @@
 torchtext
 benepar
 sacremoses
+sacrebleu
+evaluate
+git+https://github.com/google-research/bleurt.git

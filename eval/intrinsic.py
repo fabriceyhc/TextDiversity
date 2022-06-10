@@ -12,12 +12,15 @@ from transformers.trainer_callback import TrainerControl
 from datasets import load_dataset, load_metric, load_from_disk
 import os
 import sys
+import gc
 import argparse
 import time
 import random
 import shutil
 import torch
 import pandas as pd
+
+import evaluate
 from nltk import ngrams
 
 from paraphrasers import (
@@ -142,11 +145,38 @@ class DiversityEvaluator:
 
         return results
 
+class FidelityEvaluator:
+    def __init__(self):
+        self.sacrebleu = evaluate.load("sacrebleu")
+        self.meteor = evaluate.load('meteor')
+        self.bleurt = evaluate.load('bleurt', 'bleurt-large-512')
+
+    def __call__(self, candidates, references):
+
+        results = {}
+
+        # huggingface evaluate fns
+        fns = [self.sacrebleu, self.meteor, self.bleurt]
+        for fn in fns:
+            metric_name = fn.__class__.__name__
+            print(f'Working on {metric_name}...')
+            results = fn(candidates=candidates,
+                         references=references)
+            if metric_name == 'Meteor':
+                score = results['meteor']
+            elif metric_name == 'BLEURT':
+                score = np.mean(results['scores'])
+            elif metric_name == 'Sacrebleu':
+                score = results['score']
+            results[metric_name] = score
+        return results
+
 #############################################################
 ## Main Loop Functionality ##################################
 #############################################################
 
 div_evaluator = DiversityEvaluator()
+fid_evaluator = FidelityEvaluator()
 
 results = []
 for run_num in range(args.num_runs):
@@ -170,19 +200,16 @@ for run_num in range(args.num_runs):
         paraphraser = Paraphraser(technique=technique, num_outputs=args.num_eval)
 
         #############################################################
-        ## Paraphrase ###############################################
-        #############################################################
-
-        print('text_to_paraphrase:', text_to_paraphrase)
-        paraphrases = paraphraser(text_to_paraphrase)
-        print('paraphrases:', paraphrases)
-
-        #############################################################
         ## Intrinsic Evaluation #####################################
         #############################################################
 
         start_time = time.time()
-        out = div_evaluator(paraphrases)
+        print('text_to_paraphrase:', text_to_paraphrase)
+        paraphrases = paraphraser(text_to_paraphrase)
+        print('paraphrases:', paraphrases)
+        div_eval_results = div_evaluator(paraphrases)
+        fid_eval_results = fid_evaluator([text_to_paraphrase] * args.num_eval, paraphrases)
+        out = div_eval_results | fid_eval_results
         run_time = time.time() - start_time
 
         out['text_to_paraphrase'] = text_to_paraphrase
@@ -199,4 +226,6 @@ for run_num in range(args.num_runs):
         df = pd.DataFrame(results)
         df.to_csv(args.save_file)
 
+        # clear out memory for next round
+        gc.collect()
         torch.cuda.empty_cache()
