@@ -149,14 +149,14 @@ class FidelityEvaluator:
     def __init__(self):
         self.sacrebleu = evaluate.load("sacrebleu")
         self.meteor = evaluate.load('meteor')
-        # self.bleurt = evaluate.load('bleurt', 'bleurt-large-512')
+        self.bleurt = evaluate.load('bleurt', 'bleurt-large-512')
 
     def __call__(self, predictions, references):
 
         results = {}
 
         # huggingface evaluate fns
-        fns = [self.sacrebleu, self.meteor] # , self.bleurt
+        fns = [self.sacrebleu, self.meteor, self.bleurt]
         for fn in fns:
             metric_name = fn.__class__.__name__
             print(f'Working on {metric_name}...')
