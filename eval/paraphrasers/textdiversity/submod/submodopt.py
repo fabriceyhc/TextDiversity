@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.linalg as la
 import pdb
+from tqdm import tqdm
 
 from .submodular_funcs import (
     distinct_ngrams,
@@ -102,7 +103,7 @@ class SubmodularOpt:
         toksim_scores, docsim_scores = [], []
         posdiv_scores, rhydiv_scores, phodiv_scores, depdiv_scores = [], [], [], []
         
-        for doc in rem_list:
+        for doc in tqdm(rem_list):
 
             # similarities
             toksim_scores.append(sim_helper(doc, self.v, self.toksim_fn, normalize))
