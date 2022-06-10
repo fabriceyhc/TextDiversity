@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import itertools
 from functools import partial
+import logging
+logging.basicConfig(level=logging.CRITICAL)
 
 from Bio import Align
 
@@ -145,7 +147,9 @@ class PhonemicDiversity(TextDiversity):
         self.Z = pd.read_csv(csv_path, index_col=0)
 
         # phonemizer
-        self.backend = EspeakBackend('en-us', words_mismatch='ignore')
+        logger = logging.getLogger()
+        logger.disabled = True
+        self.backend = EspeakBackend('en-us', words_mismatch='ignore', logger=logger)
         self.separator = Separator(phone=' ', word=None)
 
     def get_phonemes(self, corpus, return_counts=True):

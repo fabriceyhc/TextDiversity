@@ -56,13 +56,8 @@ class TextDiversityParaphraser:
         return decoded
 
     def generate_diverse(self, en: str):
-        try:
-            de = self.en2de(en)
-            en_new = self.select_candidates(de, en)
-        except Exception as e:
-            if self.verbose:
-                print("Returning Default due to Run Time Exception:", e)
-            en_new = [en for _ in range(self.num_outputs)]
+        de = self.en2de(en)
+        en_new = self.select_candidates(de, en)
         return en_new
 
     def select_candidates(self, input: str, sentence: str):
@@ -78,25 +73,20 @@ class TextDiversityParaphraser:
             self.tokenizer_de_en.decode(output, skip_special_tokens=True)
             for output in outputs
         ]
-        try:
-            self.subopt.V = decoded
-            self.subopt.v = sentence
-            self.subopt.initialize_function(
-                        lam = 0.5, 
-                        w_toksim = 1.0,
-                        w_docsim = 1.0,
-                        w_posdiv = 1.0, 
-                        w_rhydiv = 1.0, 
-                        w_phodiv = 1.0, 
-                        w_depdiv = 1.0)
-            predicted_outputs = list(self.subopt.maximize_func(self.num_outputs))
-        except Exception as e:
-            if self.verbose:
-                print("Error in SubmodularOpt: {}".format(e))
-            predicted_outputs = decoded[: self.num_outputs]
 
-        if self.verbose:
-            print(predicted_outputs)
+        self.subopt.V = decoded
+        self.subopt.v = sentence
+
+        self.subopt.initialize_function(
+                    lam = 0.5, 
+                    w_toksim = 1.0,
+                    w_docsim = 1.0,
+                    w_posdiv = 1.0, 
+                    w_rhydiv = 1.0, 
+                    w_phodiv = 1.0, 
+                    w_depdiv = 1.0)
+
+        predicted_outputs = list(self.subopt.maximize_func(self.num_outputs))
 
         return predicted_outputs
 
@@ -105,6 +95,7 @@ class TextDiversityParaphraser:
         return candidates
 
     def __call__(self, text):
+        print('__call__')
         out = self.generate(text)
         # clean out memory
         del self.model_en_de, self.model_de_en
@@ -115,6 +106,6 @@ if __name__ == '__main__':
 
     text = 'She sells seashells by the seashore.'
 
-    transform_fn = TextDiversityParaphraser(num_outputs=3)
+    transform_fn = TextDiversityParaphraser(num_outputs=3, verbose=True)
     paraphrases = transform_fn.generate(text)
     print(paraphrases)

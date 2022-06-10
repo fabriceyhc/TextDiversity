@@ -92,7 +92,7 @@ class SubmodularOpt:
         final_score = (
             self.lam * quality_score + (1 - self.lam) * diversity_score
         )
-
+        
         return final_score
 
     def maximize_func(self, k=5):
