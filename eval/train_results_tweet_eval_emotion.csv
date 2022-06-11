@@ -1,0 +1,6 @@
+,eval_loss,eval_accuracy,eval_runtime,eval_samples_per_second,eval_steps_per_second,epoch,run_name,model_name,run_num,technique,dataset_config,run_time
+0,1.277645468711853,0.7980295566502463,5.2658,269.854,16.901,9.98,./pretrained/roberta-base-tweet_eval_emotion_orig,roberta-base,0,orig,"['tweet_eval', 'emotion']",941.8911421298981
+1,1.8882588148117065,0.7923997185080929,5.4252,261.924,16.405,10.0,./pretrained/roberta-base-tweet_eval_emotion_dips,roberta-base,0,dips,"['tweet_eval', 'emotion']",4288.244308948517
+2,1.7107409238815308,0.7895847994370162,5.395,263.393,16.497,10.0,./pretrained/roberta-base-tweet_eval_emotion_beam,roberta-base,0,beam,"['tweet_eval', 'emotion']",4230.786197900772
+3,1.7822445631027222,0.8043631245601689,5.3644,264.894,16.591,10.0,./pretrained/roberta-base-tweet_eval_emotion_diverse_beam,roberta-base,0,diverse_beam,"['tweet_eval', 'emotion']",4258.571095705032
+4,1.7970956563949585,0.7818437719915552,5.4086,262.731,16.455,9.99,./pretrained/roberta-base-tweet_eval_emotion_random,roberta-base,0,random,"['tweet_eval', 'emotion']",4261.648250341415
