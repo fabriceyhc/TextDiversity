@@ -69,6 +69,8 @@ class RhythmicDiversity(TextDiversity):
         # extracts rhythms (sequences of [un]weighted [un]stressed syllables)
         rhythms = []
         for s in sentences:
+            if len(s.strip()) == 0:
+                continue
             prose = cd.Prose(s)
             df = prose.sylls().reset_index()
             if all([c in df.columns for c in ['syll_stress', 'syll_weight']]):
