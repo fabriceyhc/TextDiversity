@@ -62,6 +62,9 @@ class RhythmicDiversity(TextDiversity):
         # split sentences
         sentences = split_sentences(corpus)
 
+        # strip punctuation
+        sentences = [s.translate(str.maketrans('', '', string.punctuation)) for s in sentences]
+
         # extracts rhythms (sequences of [un]weighted [un]stressed syllables)
         rhythms = []
         for s in sentences:
