@@ -12,6 +12,7 @@ from Bio import Align
 
 # rhythmic diversity
 import cadence as cd
+import string
 
 # phonemic diversity
 from phonemizer import phonemize
