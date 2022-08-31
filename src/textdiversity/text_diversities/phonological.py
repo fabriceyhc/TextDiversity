@@ -122,6 +122,19 @@ class RhythmicDiversity(TextDiversity):
 
         return Z
 
+
+    def calculate_similarity_vector(self, q_feat, c_feat):
+
+        scores = []
+        for f in c_feat:
+            score = align_and_score(q_feat, f)
+            score /= len(f)
+            scores.append(score)
+
+        z = np.array(scores)
+
+        return z
+
     def calculate_abundance(self, species):
         num_species = len(species)
         p = np.full(num_species, 1 / num_species)
@@ -200,6 +213,9 @@ class PhonemicDiversity(TextDiversity):
 
         return Z
 
+    def calculate_similarity_vector(self, q_feat, c_feat):
+        raise Exception("Ranking requires metrics that operate on the document level. Try RhythmicDiversity instead.")
+
     def calculate_abundance(self, species):
         p = np.array(list(species.values()), dtype=np.float16)
         p /= p.sum()
@@ -212,8 +228,8 @@ class PhonemicDiversity(TextDiversity):
 if __name__ == '__main__':
 
     # TEST
-    lo_div = ['one massive earth', 'an enormous globe', 'the colossal world', '_']
-    hi_div = ['basic human right', 'you were right', 'make a right', '_']
+    lo_div = ['one massive earth', 'an enormous globe', 'the colossal world']
+    hi_div = ['basic human right', 'you were right', 'make a right']
 
     # diversities
     print("diversities")
@@ -224,3 +240,10 @@ if __name__ == '__main__':
     print("similarities")
     print_sim_metric(RhythmicDiversity, lo_div, hi_div)
     print_sim_metric(PhonemicDiversity, lo_div, hi_div)
+
+    # rank similarities
+    print("rankings")
+    print_ranking(RhythmicDiversity, ["I was wrong"], lo_div + hi_div)
+    # print_ranking(PhonemicDiversity, "burn big planets", lo_div + hi_div)
+
+    # (textdiv) ~\GitHub\TextDiversity\src>python -m textdiversity.text_diversities.phonological

@@ -188,7 +188,7 @@ class DependencyDiversity(TextDiversity):
         return Z
 
     def calculate_similarity_vector(self, q_feat, c_feat):
-        
+
         if 'distance' in self.config['similarity_type']:
 
             if self.config['similarity_type'] == "graph_edit_distance":
@@ -207,7 +207,7 @@ class DependencyDiversity(TextDiversity):
         else:
 
             # the embedding approaches require integer node labels
-            features = [nx.convert_node_labels_to_integers(g, first_label=0, ordering='default') for g in q_feat + c_feat]
+            features = [nx.convert_node_labels_to_integers(g, first_label=0, ordering='default') for g in [q_feat] + c_feat]
 
             if self.config['similarity_type'] == "ldp":
                 model = LDP(bins=64) # more bins, less similarity
