@@ -128,7 +128,7 @@ class TextDiversity(DiversityMetric):
         q_feats, q_corpus = feats[0], corpus[0]
         c_feats, c_corpus = feats[1:], corpus[1:]
 
-        # print(list(zip(q_corpus, q_feats)))
+        # print(list(zip([q_corpus], [q_feats])))
         # print(list(zip(c_corpus, c_feats)))
 
         # if there are no features, we cannot rank

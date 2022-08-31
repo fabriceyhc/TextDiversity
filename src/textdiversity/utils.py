@@ -140,7 +140,7 @@ def print_ranking(metric_class, query, corpus):
     print(f"metric: {metric_class.__name__}")
     print(f"query: {query}")
     for text, score in zip(ranking, scores):
-        print(f"text: {text} | score: {score}")
+        print(f"score: {round(score, 2)} | text: {text}")
     
 if __name__ == '__main__':
     pass

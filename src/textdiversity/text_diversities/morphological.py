@@ -100,10 +100,11 @@ class POSSequenceDiversity(TextDiversity):
 
     def calculate_similarity_vector(self, q_feat, c_feat):
 
+        q_len = len(q_feat)
         scores = []
         for f in c_feat:
             score = align_and_score(q_feat, f)
-            score /= len(f)
+            score /= max(len(f), q_len)
             scores.append(score)
 
         z = np.array(scores)
