@@ -124,20 +124,20 @@ class TextDiversity(DiversityMetric):
             top_n = len(corpus)
 
         # extract features + species
-        q_feats, _ = self.extract_features(query)
-        c_feats, corpus = self.extract_features(corpus)
+        q_feats, q_corpus = self.extract_features(query)
+        c_feats, c_corpus = self.extract_features(corpus)
 
         # if there are no features, we cannot rank
-        if not q_feats.any() or not c_feats.any():
+        if len(q_feats) == 0 or len(c_feats) == 0:
             return [], []
-
+            
         # get similarity vector z
         z = self.calculate_similarity_vector(q_feats, c_feats)
 
         # rank based on similarity
         rank_idx = np.argsort(z)[::-1]
 
-        ranking = np.array(corpus)[rank_idx].tolist()
+        ranking = np.array(c_corpus)[rank_idx].tolist()
         scores = z[rank_idx]
 
         return ranking[:top_n], scores[:top_n]

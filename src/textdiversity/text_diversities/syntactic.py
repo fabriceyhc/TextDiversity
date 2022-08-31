@@ -187,6 +187,55 @@ class DependencyDiversity(TextDiversity):
 
         return Z
 
+    def calculate_similarity_vector(self, q_feat, c_feat):
+        
+        if 'distance' in self.config['similarity_type']:
+
+            if self.config['similarity_type'] == "graph_edit_distance":
+                dist_fn = partial(nx.graph_edit_distance, 
+                             node_match=node_match_on_pos, 
+                             edge_match=edge_match_on_dep)
+            elif self.config['similarity_type'] == "tree_edit_distance":
+                dist_fn = zss_tree_edit_distance
+                
+            z = np.array([dist_fn(q_feat[0], f) for f in c_feat])
+
+            # convert distance to similarity
+            z = z - z.mean()
+            z = 1 / (1+np.e**z)
+
+        else:
+
+            # the embedding approaches require integer node labels
+            features = [nx.convert_node_labels_to_integers(g, first_label=0, ordering='default') for g in q_feat + c_feat]
+
+            if self.config['similarity_type'] == "ldp":
+                model = LDP(bins=64) # more bins, less similarity
+                model.fit(features)
+                emb = model.get_embedding().astype(np.float32)
+            elif self.config['similarity_type'] == "feather":
+                model = FeatherGraph(theta_max=100) # higher theta, less similarity
+                model.fit(features)
+                emb = model.get_embedding().astype(np.float32)
+
+            # compress embedding to speed up similarity matrix computation
+            if self.config['n_components'] == "auto":
+                n_components = min(max(2, len(emb) // 10), emb.shape[-1])
+                if self.config['verbose']:
+                    print('Using n_components={}'.format(str(n_components)))
+            else:
+                n_components = -1
+
+            if type(n_components) == int and n_components > 0 and len(emb) > 1:
+                emb = self.config['dim_reducer'](n_components=n_components).fit_transform(emb)
+
+            z = cos_sim(emb, emb).numpy()[0, 1:]
+
+            # strongly penalize for any differences to make Z more intuitive
+            z **= 200
+
+        return z
+
     def calculate_abundance(self, species):
         num_species = len(species)
         p = np.full(num_species, 1 / num_species)
@@ -209,3 +258,9 @@ if __name__ == '__main__':
     # similarities
     print("similarities")
     print_sim_metric(DependencyDiversity, lo_div, hi_div)
+
+    # rank similarities
+    print("rankings")
+    print_ranking(DependencyDiversity, ["burn big planets"], lo_div + hi_div)
+
+    # (textdiv) ~\GitHub\TextDiversity\src>python -m textdiversity.text_diversities.syntactic
