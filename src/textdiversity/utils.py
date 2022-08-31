@@ -132,5 +132,15 @@ def print_sim_metric(metric_class, lo_div, hi_div):
             sim_lo, 
             sim_hi))
 
+def print_ranking(metric_class, query, corpus):
+
+    rank_metric = metric_class()
+    ranking, scores = rank_metric.rank_similarity(query, corpus, -1)
+
+    print(f"metric: {metric_class.__name__}")
+    print(f"query: {query}")
+    for text, score in zip(ranking, scores):
+        print(f"text: {text} | score: {score}")
+    
 if __name__ == '__main__':
     pass

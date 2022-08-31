@@ -178,6 +178,10 @@ class TokenSemanticDiversity(TextDiversity):
 
         return Z
 
+    def calculate_similarity_vector(self, q_feat, c_feat):
+        raise Exception("Ranking requires metrics that operate on the document level. Try DocumentSemanticDiversity instead.")
+
+
     def calculate_abundance(self, species):
         num_species = len(species)
         p = np.full(num_species, 1 / num_species)
@@ -295,6 +299,11 @@ class TokenEmbeddingDiversity(TextDiversity):
             Z = np.where(Z < 0, 0 , Z)
 
         return Z
+
+
+    def calculate_similarity_vector(self, q_feat, c_feat):
+        raise Exception("Ranking requires metrics that operate on the document level. Try DocumentSemanticDiversity instead.")
+
 
     def calculate_abundance(self, species):
         num_species = len(species)
@@ -422,6 +431,10 @@ class STokenSemanticDiversity(TextDiversity):
 
         return Z
 
+
+    def calculate_similarity_vector(self, q_feat, c_feat):
+        raise Exception("Ranking requires metrics that operate on the document level. Try DocumentSemanticDiversity instead.")
+
     def calculate_abundance(self, species):
         num_species = len(species)
         p = np.full(num_species, 1 / num_species)
@@ -510,6 +523,26 @@ class DocumentSemanticDiversity(TextDiversity):
 
         return Z
 
+
+    def calculate_similarity_vector(self, q_feat, c_feat):
+
+        z = np.array([self.config['distance_fn'](q_feat, f) for f in c_feat])
+        
+        if self.config['scale_dist'] == "exp":
+            z = np.exp(-z) 
+        elif self.config['scale_dist'] == "invert":
+            z = 1 - z
+
+        # remove some noise from the z similarities
+        if self.config['power_reg']:
+            z **= 2
+
+        if self.config['mean_adj']:
+            z -= z.mean()
+            z = np.where(z < 0, 0 , z)
+
+        return z
+
     def calculate_abundance(self, species):
         num_species = len(species)
         p = np.full(num_species, 1 / num_species)
@@ -525,16 +558,25 @@ if __name__ == '__main__':
     lo_div = ['one massive earth', 'an enormous globe', 'the colossal world']
     hi_div = ['basic human right', 'you were right', 'make a right']
 
-    # diversities
-    print("diversities")
-    print_div_metric(TokenSemanticDiversity, lo_div, hi_div)
-    print_div_metric(TokenEmbeddingDiversity, lo_div, hi_div)
-    print_div_metric(STokenSemanticDiversity, lo_div, hi_div)
-    print_div_metric(DocumentSemanticDiversity, lo_div, hi_div)
+    # # diversities
+    # print("diversities")
+    # print_div_metric(TokenSemanticDiversity, lo_div, hi_div)
+    # print_div_metric(TokenEmbeddingDiversity, lo_div, hi_div)
+    # print_div_metric(STokenSemanticDiversity, lo_div, hi_div)
+    # print_div_metric(DocumentSemanticDiversity, lo_div, hi_div)
 
-    # similarities
-    print("similarities")
-    print_sim_metric(TokenSemanticDiversity, lo_div, hi_div)
-    print_sim_metric(TokenEmbeddingDiversity, lo_div, hi_div)
-    print_sim_metric(STokenSemanticDiversity, lo_div, hi_div)
-    print_sim_metric(DocumentSemanticDiversity, lo_div, hi_div)
+    # # similarities
+    # print("similarities")
+    # print_sim_metric(TokenSemanticDiversity, lo_div, hi_div)
+    # print_sim_metric(TokenEmbeddingDiversity, lo_div, hi_div)
+    # print_sim_metric(STokenSemanticDiversity, lo_div, hi_div)
+    # print_sim_metric(DocumentSemanticDiversity, lo_div, hi_div)
+
+    # rank similarities
+    print("rankings")
+    # print_ranking(TokenSemanticDiversity, "a big planet", lo_div + hi_div)
+    # print_ranking(TokenEmbeddingDiversity, "a big planet", lo_div + hi_div)
+    # print_ranking(STokenSemanticDiversity, "a big planet", lo_div + hi_div)
+    print_ranking(DocumentSemanticDiversity, "a big planet", lo_div + hi_div)
+
+    # (textdiv) ~\GitHub\TextDiversity\src>python -m textdiversity.text_diversities.semantic
