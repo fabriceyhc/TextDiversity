@@ -98,6 +98,18 @@ class POSSequenceDiversity(TextDiversity):
 
         return Z
 
+    def calculate_similarity_vector(self, q_feat, c_feat):
+
+        scores = []
+        for f in c_feat:
+            score = align_and_score(q_feat, f)
+            score /= len(f)
+            scores.append(score)
+
+        z = np.array(scores)
+
+        return z
+
     def calculate_abundance(self, species):
         num_species = len(species)
         p = np.full(num_species, 1 / num_species)
@@ -120,3 +132,9 @@ if __name__ == '__main__':
     # similarities
     print("similarities")
     print_sim_metric(POSSequenceDiversity, lo_div, hi_div)
+
+    # rank similarities
+    print("rankings")
+    print_ranking(POSSequenceDiversity, ["I was wrong"], lo_div + hi_div)
+
+    # (textdiv) ~\GitHub\TextDiversity\src>python -m textdiversity.text_diversities.morphological
