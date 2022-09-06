@@ -11,7 +11,8 @@ tmux a -t 0 # 1,2,3
 ### environment setup 
 
 conda activate textdiv
-export CUDA_VISIBLE_DEVICES=1 # 0,1,2,3
+cd projects/TextDiversity/eval
+export CUDA_VISIBLE_DEVICES=2 # 0,1,2,3
 
 ## monitoring
 
@@ -35,4 +36,6 @@ python train.py --dataset-config tweet_eval emotion --dataset-keys text --gpus 0
 python train.py --dataset-config glue mrpc --gpus 0 --save-file train_results_glue_mrpc.csv
 
 ## intrinsic.py cmds
-python intrinsic.py --dataset-config snips_built_in_intents --dataset-keys text --num-runs 100
+python intrinsic.py --dataset-config snips_built_in_intents --dataset-keys text --num-runs 100 --save-file intrinsic_results_snips_built_in_intents.csv
+python intrinsic.py --dataset-config banking77 --dataset-keys text --num-runs 100 --save-file intrinsic_results_banking77.csv
+python intrinsic.py --dataset-config tweet_eval emotion --dataset-keys text --num-runs 100 --save-file intrinsic_results_tweet_eval_emotion.csv

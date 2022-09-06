@@ -1,0 +1,5 @@
+,Unnamed: 0,eval_loss,eval_accuracy,eval_runtime,eval_samples_per_second,eval_steps_per_second,epoch,run_name,model_name,run_num,technique,dataset_config,run_time
+0,0.0,0.4797389805316925,0.9344155844155844,7.8125,197.12,12.416,9.99,./pretrained/roberta-base-banking77_orig,roberta-base,0,orig,['banking77'],2596.584832429886
+1,,0.5467669367790222,0.9292207792207792,9.0058,171.002,10.771,10.0,./pretrained/roberta-base-banking77_dips,roberta-base,0,dips,['banking77'],9774.453985214233
+2,,0.6245042085647583,0.9292207792207792,8.4212,182.872,11.519,10.0,./pretrained/roberta-base-banking77_beam,roberta-base,0,beam,['banking77'],10089.314950466156
+3,,0.5994694828987122,0.9344155844155844,8.4916,181.356,11.423,10.0,./pretrained/roberta-base-banking77_diverse_beam,roberta-base,0,diverse_beam,['banking77'],10217.366603374481
