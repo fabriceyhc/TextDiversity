@@ -104,6 +104,9 @@ def split_sentences(texts):
     sentencizer = English()
     sentencizer.add_pipe("sentencizer")
 
+    if isinstance(texts, str):
+        texts = [texts]
+
     sentences = []
     for text in texts:
         sents = list(sentencizer(text).sents)

@@ -65,11 +65,12 @@ class RhythmicDiversity(TextDiversity):
         # strip punctuation
         sentences = [s.translate(str.maketrans('', '', string.punctuation)) for s in sentences]
 
+        # remove any blank sentences...
+        sentences = [s for s in sentences if len(s.strip()) > 0]
+
         # extracts rhythms (sequences of [un]weighted [un]stressed syllables)
         rhythms = []
         for s in sentences:
-            if len(s.strip()) == 0:
-                continue
             prose = cd.Prose(s)
             df = prose.sylls().reset_index()
             if all([c in df.columns for c in ['syll_stress', 'syll_weight']]):
