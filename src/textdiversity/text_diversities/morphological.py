@@ -87,7 +87,7 @@ class POSSequenceDiversity(TextDiversity):
 
     def calculate_similarity_vector(self, q_feat, c_feat):
 
-        features = q_feat + c_feat
+        features = [q_feat] + c_feat
 
         if is_list_of_lists(features):
             # convert pos tags to alphas
