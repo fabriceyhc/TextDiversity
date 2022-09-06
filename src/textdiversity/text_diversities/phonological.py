@@ -46,8 +46,7 @@ class RhythmicDiversity(TextDiversity):
         'remove_stopwords': False, 
         'verbose': False,
         # RhythmicDiversity configs
-        'pad_to_max_len': False, 
-        'rhythm_to_alpha' : True
+        'pad_to_max_len': False
     }
 
     def __init__(self, config={}):
@@ -87,28 +86,18 @@ class RhythmicDiversity(TextDiversity):
         if self.config['pad_to_max_len']:
             rhythms = np.array([r + ['N'] * (self.max_len - len(r)) for r in rhythms])
 
-        # convert rhythms to alpha
-        if self.config['rhythm_to_alpha']:
-            # build dict of unique rhythms
-            rhythm_map = set(itertools.chain(*rhythms))
-            rhythm_map = {tag: chr(i+65) for i, tag in enumerate(rhythm_map)}
-            # convert to int for distance comparison
-            if isinstance(rhythm, np.ndarray):
-                rhythm_to_alpha_fn = np.vectorize(rhythm_map.get)
-                rhythm = rhythm_to_alpha_fn(rhythm)
-            else:
-                rhythms = [list(map(rhythm_map.get, r)) for r in rhythms]
-
-        # create strands of rhythmic dna
-        rhythm_strands = ["".join(r) for r in rhythms]
-
-        return rhythm_strands, sentences
+        return rhythms, sentences
 
     def calculate_similarities(self, features):
         """
         Uses biopython.Bio.Align.PairwiseAligner() to align and score stands of
-        morphological DNA (i.e. sequences of [un]weighted [un]stressed syllables)
+        phonological DNA (i.e. sequences of [un]weighted [un]stressed syllables)
         """
+
+        if is_list_of_lists(features):
+            # convert rhythm tags to alphas
+            features = tag2alpha(features)
+            features = ["".join(rhythm) for rhythm in features]
 
         # compute pairwise alignment + scoring
         Z = compute_pairwise(
@@ -124,6 +113,16 @@ class RhythmicDiversity(TextDiversity):
 
 
     def calculate_similarity_vector(self, q_feat, c_feat):
+
+        features = q_feat + c_feat
+
+        if is_list_of_lists(features):
+            # convert rhythm tags to alphas
+            features = tag2alpha(features)
+            features = ["".join(pos) for pos in features]
+
+        q_feat = features[0]
+        c_feat = features[1:]
 
         q_len = len(q_feat)
         scores = []

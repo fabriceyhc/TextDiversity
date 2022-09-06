@@ -2,8 +2,6 @@
 import spacy
 import torch
 import numpy as np
-import itertools
-from functools import partial
 from sklearn.decomposition import PCA
 
 from Bio import Align
@@ -32,7 +30,6 @@ class POSSequenceDiversity(TextDiversity):
         'verbose': False,
         # POSSequenceDiversity configs
         'pad_to_max_len': False, 
-        'pos_to_alpha' : True,
         'use_gpu': False,
         'n_components': None 
     }
@@ -63,28 +60,18 @@ class POSSequenceDiversity(TextDiversity):
         if self.config['pad_to_max_len']:
             poses = np.array([s + ['NULL'] * (self.max_len - len(s)) for s in poses])
 
-        # convert poses to alpha
-        if self.config['pos_to_alpha']:
-            # build dict of unique poses
-            pos_map = set(itertools.chain(*poses))
-            pos_map = {tag: chr(i+65) for i, tag in enumerate(pos_map)}
-            # convert to int for distance comparison
-            if isinstance(poses, np.ndarray):
-                pos_to_alpha_fn = np.vectorize(pos_map.get)
-                poses = pos_to_alpha_fn(poses)
-            else:
-                poses = [list(map(pos_map.get, pos)) for pos in poses]
-
-        # create strands of morphological dna
-        pos_strands = ["".join(pos) for pos in poses]
-
-        return pos_strands, sentences
+        return poses, sentences
 
     def calculate_similarities(self, features):
         """
         Uses biopython.Bio.Align.PairwiseAligner() to align and score stands of
         morphological DNA (i.e. sequences of pos tags)
         """
+
+        if is_list_of_lists(features):
+            # convert pos tags to alphas
+            features = tag2alpha(features)
+            features = ["".join(pos) for pos in features]
 
         # compute pairwise alignment + scoring
         Z = compute_pairwise(
@@ -99,6 +86,16 @@ class POSSequenceDiversity(TextDiversity):
         return Z
 
     def calculate_similarity_vector(self, q_feat, c_feat):
+
+        features = q_feat + c_feat
+
+        if is_list_of_lists(features):
+            # convert pos tags to alphas
+            features = tag2alpha(features)
+            features = ["".join(pos) for pos in features]
+
+        q_feat = features[0]
+        c_feat = features[1:]
 
         q_len = len(q_feat)
         scores = []

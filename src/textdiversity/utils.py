@@ -1,8 +1,5 @@
-import os
-import requests
-import re
 from tqdm import tqdm
-import zipfile
+import itertools
 import numpy as np
 import torch
 from spacy.lang.en import English
@@ -34,6 +31,21 @@ def merge_bpe(tok, boe, chars="##"):
 def find_max_list(lists):
     list_len = [len(l) for l in lists]
     return max(list_len)
+
+def is_list_of_lists(input_list):
+    return any(isinstance(el, list) for el in input_list)
+
+def tag2alpha(tags):
+    # build dict of unique tags
+    tag_map = set(itertools.chain(*tags))
+    tag_map = {tag: chr(i+65) for i, tag in enumerate(tag_map)}
+    # apply to tags
+    if isinstance(tags, np.ndarray):
+        tags_to_alpha_fn = np.vectorize(tag_map.get)
+        tags = tags_to_alpha_fn(tags)
+    else:
+        tags = [list(map(tag_map.get, tag)) for tag in tags]
+    return tags
 
 def cos_sim(a, b):
     """
