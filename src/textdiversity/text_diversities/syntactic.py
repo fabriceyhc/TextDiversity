@@ -113,19 +113,6 @@ class DependencyDiversity(TextDiversity):
         return G
 
     def extract_features(self, corpus):
-
-        # clean corpus
-        corpus = clean_text(corpus)
-
-        # split sentences
-        sentences = split_sentences(corpus)
-
-        # generate dependency tree graphs
-        graphs = [self.generate_dependency_tree(s) for s in sentences]
-
-        return graphs, sentences
-
-    def calculate_similarities(self, features):
         """
         self.similarity_type: 
           - "graph_edit_distance" --> nx.graph_edit_distance
@@ -134,29 +121,18 @@ class DependencyDiversity(TextDiversity):
           - "feather" --> karateclub.FeatherGraph
         """
 
-        if 'distance' in self.config['similarity_type']:
+        # clean corpus
+        corpus = clean_text(corpus)
 
-            if self.config['similarity_type'] == "graph_edit_distance":
-                Z = compute_pairwise(features, partial(nx.graph_edit_distance, 
-                                                        node_match=node_match_on_pos, 
-                                                        edge_match=edge_match_on_dep))
-            elif self.config['similarity_type'] == "tree_edit_distance":
-                Z = compute_pairwise(features, zss_tree_edit_distance)
+        # split sentences
+        sentences = split_sentences(corpus)
 
-            # convert distance to similarity
+        # generate dependency tree graphs
+        features = [self.generate_dependency_tree(s) for s in sentences]
 
-            # # option 1
-            # Z = 1 - (Z / (Z.max()))
-            # Z **= 4
-            # np.fill_diagonal(Z, 1)
-
-            # option 2
-            Z = Z - Z.mean()
-            Z = 1 / (1+np.e**Z)
-            np.fill_diagonal(Z, 1)
-
-        else:
-
+        # optionally embed graphs
+        if 'distance' not in self.config['similarity_type']:
+        
             # the embedding approaches require integer node labels
             features = [nx.convert_node_labels_to_integers(g, first_label=0, ordering='default') for g in features]
 
@@ -180,7 +156,45 @@ class DependencyDiversity(TextDiversity):
             if type(n_components) == int and n_components > 0 and len(emb) > 1:
                 emb = self.config['dim_reducer'](n_components=n_components).fit_transform(emb)
 
-            Z = cos_sim(emb, emb).numpy()
+            features = emb
+        
+        return features, sentences
+
+    def calculate_similarities(self, features):
+        """
+        self.similarity_type: 
+          - "graph_edit_distance" --> nx.graph_edit_distance
+          - "tree_edit_distance" --> zss.simple_distance
+          - "ldp" --> karateclub.LDP (Local Degree Profile)
+          - "feather" --> karateclub.FeatherGraph
+        """
+
+        if 'distance' in self.config['similarity_type']:
+
+            if self.config['similarity_type'] == "graph_edit_distance":
+                dist_fn = partial(nx.graph_edit_distance, 
+                             node_match=node_match_on_pos, 
+                             edge_match=edge_match_on_dep)
+            elif self.config['similarity_type'] == "tree_edit_distance":
+                dist_fn = zss_tree_edit_distance
+
+            Z = compute_pairwise(features, dist_fn)
+
+            # convert distance to similarity
+
+            # # option 1
+            # Z = 1 - (Z / (Z.max()))
+            # Z **= 4
+            # np.fill_diagonal(Z, 1)
+
+            # option 2
+            Z = Z - Z.mean()
+            Z = 1 / (1+np.e**Z)
+            np.fill_diagonal(Z, 1)
+
+        else:
+
+            Z = cos_sim(features, features).numpy()
 
             # strongly penalize for any differences to make Z more intuitive
             Z **= 200
@@ -205,31 +219,7 @@ class DependencyDiversity(TextDiversity):
             z = 1 / (1+np.e**z)
 
         else:
-
-            # the embedding approaches require integer node labels
-            features = [nx.convert_node_labels_to_integers(g, first_label=0, ordering='default') for g in [q_feat] + c_feat]
-
-            if self.config['similarity_type'] == "ldp":
-                model = LDP(bins=64) # more bins, less similarity
-                model.fit(features)
-                emb = model.get_embedding().astype(np.float32)
-            elif self.config['similarity_type'] == "feather":
-                model = FeatherGraph(theta_max=100) # higher theta, less similarity
-                model.fit(features)
-                emb = model.get_embedding().astype(np.float32)
-
-            # compress embedding to speed up similarity matrix computation
-            if self.config['n_components'] == "auto":
-                n_components = min(max(2, len(emb) // 10), emb.shape[-1])
-                if self.config['verbose']:
-                    print('Using n_components={}'.format(str(n_components)))
-            else:
-                n_components = -1
-
-            if type(n_components) == int and n_components > 0 and len(emb) > 1:
-                emb = self.config['dim_reducer'](n_components=n_components).fit_transform(emb)
-
-            z = cos_sim(emb, emb).numpy()[0, 1:]
+            z = np.array([cos_sim(q_feat, f).item() for f in c_feat])
 
             # strongly penalize for any differences to make Z more intuitive
             z **= 200
