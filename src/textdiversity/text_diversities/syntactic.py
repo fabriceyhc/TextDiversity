@@ -198,7 +198,7 @@ class DependencyDiversity(TextDiversity):
             elif self.config['similarity_type'] == "tree_edit_distance":
                 dist_fn = zss_tree_edit_distance
                 
-            z = np.array([dist_fn(q_feat[0], f) for f in c_feat])
+            z = np.array([dist_fn(q_feat, f) for f in c_feat])
 
             # convert distance to similarity
             z = z - z.mean()
