@@ -54,13 +54,13 @@ class RhythmicDiversity(TextDiversity):
         super().__init__(config)
         self.model = spacy.load("en_core_web_sm")
 
-    def extract_features(self, corpus):
+    def extract_features(self, corpus, return_ids=False):
 
         # clean corpus
         corpus = clean_text(corpus)
 
         # split sentences
-        sentences = split_sentences(corpus)
+        sentences, corpus_ids = split_sentences(corpus, return_ids=True)
 
         # strip punctuation
         sentences = [s.translate(str.maketrans('', '', string.punctuation)) for s in sentences]
@@ -87,6 +87,8 @@ class RhythmicDiversity(TextDiversity):
         if self.config['pad_to_max_len']:
             rhythms = np.array([r + ['N'] * (self.max_len - len(r)) for r in rhythms])
 
+        if return_ids:
+            return rhythms, sentences, corpus_ids
         return rhythms, sentences
 
     def calculate_similarities(self, features):

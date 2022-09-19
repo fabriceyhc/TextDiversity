@@ -471,7 +471,7 @@ class DocumentSemanticDiversity(TextDiversity):
 
         # print('{0} ({1})'.format(self.__class__.__name__, config['MODEL_NAME']))
 
-    def extract_features(self, corpus):
+    def extract_features(self, corpus, return_ids=False):
 
         boe = np.stack(self.model.encode(corpus))
         
@@ -486,6 +486,8 @@ class DocumentSemanticDiversity(TextDiversity):
         if type(n_components) == int and n_components > 0 and len(boe) > 1:
             boe = self.config['dim_reducer'](n_components=n_components).fit_transform(boe)
 
+        if return_ids:
+            return boe, corpus, list(range(len(boe)))
         return boe, corpus
 
     def calculate_similarities(self, features):

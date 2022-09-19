@@ -112,7 +112,7 @@ class DependencyDiversity(TextDiversity):
 
         return G
 
-    def extract_features(self, corpus):
+    def extract_features(self, corpus, return_ids=False):
         """
         self.similarity_type: 
           - "graph_edit_distance" --> nx.graph_edit_distance
@@ -125,7 +125,7 @@ class DependencyDiversity(TextDiversity):
         corpus = clean_text(corpus)
 
         # split sentences
-        sentences = split_sentences(corpus)
+        sentences, corpus_ids = split_sentences(corpus, return_ids=True)
 
         # generate dependency tree graphs
         features = [self.generate_dependency_tree(s) for s in sentences]
@@ -157,7 +157,9 @@ class DependencyDiversity(TextDiversity):
                 emb = self.config['dim_reducer'](n_components=n_components).fit_transform(emb)
 
             features = emb
-        
+
+        if return_ids:
+            return features, sentences, corpus_ids
         return features, sentences
 
     def calculate_similarities(self, features):

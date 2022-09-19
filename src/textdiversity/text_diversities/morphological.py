@@ -39,13 +39,13 @@ class POSSequenceDiversity(TextDiversity):
         super().__init__(config)
         self.model = spacy.load("en_core_web_sm")
 
-    def extract_features(self, corpus):
+    def extract_features(self, corpus, return_ids=False):
 
         # clean corpus
         corpus = clean_text(corpus)
 
         # split sentences
-        sentences = split_sentences(corpus)
+        sentences, corpus_ids = split_sentences(corpus, return_ids=True)
 
         # extracts parts-of-speech (poses)
         poses = []
@@ -60,6 +60,8 @@ class POSSequenceDiversity(TextDiversity):
         if self.config['pad_to_max_len']:
             poses = np.array([s + ['NULL'] * (self.max_len - len(s)) for s in poses])
 
+        if return_ids:
+            return poses, sentences, corpus_ids
         return poses, sentences
 
     def calculate_similarities(self, features):

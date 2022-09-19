@@ -100,19 +100,22 @@ def clean_text(texts):
     texts = [text.strip() for text in texts]
     return texts
 
-def split_sentences(texts):
+def split_sentences(texts, return_ids=False):
     sentencizer = English()
     sentencizer.add_pipe("sentencizer")
 
     if isinstance(texts, str):
         texts = [texts]
 
-    sentences = []
-    for text in texts:
+    sentences, ids = [], []
+    for id, text in enumerate(texts):
         sents = list(sentencizer(text).sents)
         sents = [s.text.strip() for s in sents if s.text.strip()]
         sentences.extend(sents)
-      
+        ids.extend([id] * len(sents))
+    
+    if return_ids:
+        return sentences, ids
     return sentences
 
 def print_div_metric(metric_class, lo_div, hi_div):
