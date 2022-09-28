@@ -633,13 +633,23 @@ if __name__ == '__main__':
 
     # diversities
     print("diversities")
+    print_div_metric(TokenSemanticDiversity, lo_div, hi_div)
+    print_div_metric(TokenEmbeddingDiversity, lo_div, hi_div)
+    print_div_metric(STokenSemanticDiversity, lo_div, hi_div)
+    print_div_metric(DocumentSemanticDiversity, lo_div, hi_div)
     print_div_metric(AMRDiversity, lo_div, hi_div)
 
     # similarities
     print("similarities")
+    print_sim_metric(TokenSemanticDiversity, lo_div, hi_div)
+    print_sim_metric(TokenEmbeddingDiversity, lo_div, hi_div)
+    print_sim_metric(STokenSemanticDiversity, lo_div, hi_div)
+    print_sim_metric(DocumentSemanticDiversity, lo_div, hi_div)
     print_sim_metric(AMRDiversity, lo_div, hi_div)
 
     # rank similarities
     print("rankings")
+    print_ranking(DocumentSemanticDiversity, ["a big planet"], lo_div + hi_div)
+    print_ranking(AMRDiversity, ["a big planet"], lo_div + hi_div)
 
     # (textdiv) ~\GitHub\TextDiversity\src>python -m textdiversity.text_diversities.semantic
