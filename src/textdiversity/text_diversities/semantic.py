@@ -591,20 +591,28 @@ class AMRDiversity(TextDiversity):
         iu = np.triu_indices(num_embeddings, k=1)
         il = (iu[1], iu[0])
 
-        iterable = range(num_embeddings)
+        iterable = range(num_embeddings - 1)
         if self.config['verbose']:
             print('calculating similarity matrix...')
             iterable = tqdm(iterable)
 
+        # for e1 in iterable:
+        #     for e2 in range(1, num_embeddings - e1):
+        #         s = self.scorer([features[e1]], [features[e1 + e2]])[0]
+        #         Z[e1][e1 + e2] = s
+
         for e1 in iterable:
-            for e2 in range(1, num_embeddings - e1):
-                s = self.scorer([features[e1]], [features[e1 + e2]])[0]
-                Z[e1][e1 + e2] = s
+            other_idx = e1 + 1
+            c_feat = features[other_idx:]
+            q_feat = [features[e1]] * len(c_feat)
+            s = self.scorer(q_feat, c_feat)
+            Z[e1][other_idx:] = s
         Z[il] = Z[iu]
         return Z
 
     def calculate_similarity_vector(self, q_feat, c_feat):
-        z = np.array([self.scorer([q_feat], [f])[0] for f in c_feat])
+        # z = np.array([self.scorer([q_feat], [f])[0] for f in c_feat])
+        z = self.scorer([q_feat] * len(c_feat), c_feat)
         return z
 
     def calculate_abundance(self, species):
@@ -625,23 +633,13 @@ if __name__ == '__main__':
 
     # diversities
     print("diversities")
-    print_div_metric(TokenSemanticDiversity, lo_div, hi_div)
-    print_div_metric(TokenEmbeddingDiversity, lo_div, hi_div)
-    print_div_metric(STokenSemanticDiversity, lo_div, hi_div)
-    print_div_metric(DocumentSemanticDiversity, lo_div, hi_div)
     print_div_metric(AMRDiversity, lo_div, hi_div)
 
     # similarities
     print("similarities")
-    print_sim_metric(TokenSemanticDiversity, lo_div, hi_div)
-    print_sim_metric(TokenEmbeddingDiversity, lo_div, hi_div)
-    print_sim_metric(STokenSemanticDiversity, lo_div, hi_div)
-    print_sim_metric(DocumentSemanticDiversity, lo_div, hi_div)
     print_sim_metric(AMRDiversity, lo_div, hi_div)
 
     # rank similarities
     print("rankings")
-    print_ranking(DocumentSemanticDiversity, ["a big planet"], lo_div + hi_div)
-    print_ranking(AMRDiversity, ["a big planet"], lo_div + hi_div)
 
     # (textdiv) ~\GitHub\TextDiversity\src>python -m textdiversity.text_diversities.semantic
