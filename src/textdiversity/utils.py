@@ -1,4 +1,8 @@
+import os
+import shutil
+import inspect
 from tqdm import tqdm
+from urllib import request
 import itertools
 import numpy as np
 import torch
@@ -159,6 +163,48 @@ def print_ranking(metric_class, query, corpus):
     print(f"query: {query}")
     for text, score in zip(ranking, scores):
         print(f"score: {round(score, 2)} | text: {text}")
+
+def extract_all(archives, extract_path):
+    for filename in archives:
+        shutil.unpack_archive(filename, extract_path)
+        
+def download_gtos_model():
+    import amrlib
+    # setup variables
+    gtos_url = "https://github.com/bjascob/amrlib-models/releases/download/model_generate_t5wtense-v0_1_0/model_generate_t5wtense-v0_1_0.tar.gz"
+    gtos_file_name = "model_generate_t5wtense-v0_1_0.tar.gz"
+    gtos_folder_name = gtos_file_name.split(".")[0]
+
+    # create paths
+    amrlib_path = os.path.dirname(inspect.getfile(amrlib))
+    model_save_path = os.path.join(amrlib_path, "data")
+    os.makedirs(model_save_path, exist_ok=True)
+    gtos_path = os.path.join(model_save_path, "model_gtos")
+
+    if not os.path.exists(gtos_path):
+        print("downloading amr gtos model...")
+        _ = request.urlretrieve(gtos_url, gtos_file_name)
+        extract_all([gtos_file_name], model_save_path)
+        os.rename(os.path.join(model_save_path, gtos_folder_name), gtos_path)
+
+def download_stog_model():
+    import amrlib
+    # setup variables
+    stog_url = "https://github.com/bjascob/amrlib-models/releases/download/parse_xfm_bart_base-v0_1_0/model_parse_xfm_bart_base-v0_1_0.tar.gz"
+    stog_file_name = "model_parse_xfm_bart_base-v0_1_0.tar.gz"
+    stog_folder_name = stog_file_name.split(".")[0]
+    
+    # create paths
+    amrlib_path = os.path.dirname(inspect.getfile(amrlib))
+    model_save_path = os.path.join(amrlib_path, "data")
+    os.makedirs(model_save_path, exist_ok=True)
+    stog_path = os.path.join(model_save_path, "model_stog")
+
+    if not os.path.exists(stog_path):
+        print("downloading amr stog model...")
+        _ = request.urlretrieve(stog_url, stog_file_name)
+        extract_all([stog_file_name], model_save_path)
+        os.rename(os.path.join(model_save_path, stog_folder_name), stog_path)
     
 if __name__ == '__main__':
     pass

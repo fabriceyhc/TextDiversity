@@ -1,8 +1,5 @@
 # TextDiversity pkgs
-import os
-import string
 import itertools
-import requests
 from itertools import chain
 
 import torch
@@ -19,7 +16,10 @@ import gensim.downloader
 
 from nltk.corpus import stopwords
 
+import amrlib
+
 # locals
+from ..similarities.amrsim import WLKScorer
 from ..metric import TextDiversity
 from ..utils import *
 
@@ -553,6 +553,70 @@ class DocumentSemanticDiversity(TextDiversity):
         return super().__call__(response_set)
 
 
+class AMRDiversity(TextDiversity):
+
+    default_config = {
+        # TextDiversity configs
+        'q': 1,
+        'normalize': False,
+        'verbose': False,
+        # AMRDiversity configs
+        'use_gpu': True
+    }
+
+    def __init__(self, config={}):
+        config = {**self.default_config, **config} 
+        super().__init__(config)
+        self.device = torch.device('cuda' if config['use_gpu'] and torch.cuda.is_available() else 'cpu')
+        self.config['verbose'] = config['verbose']
+        
+        # make sure stog model is downloaded 
+        # to amrlib's package repo
+        download_stog_model()
+        self.model = amrlib.load_stog_model(device=self.device)
+        self.scorer = WLKScorer().compute_score
+
+        # print('{0} ({1})'.format(self.__class__.__name__, config['MODEL_NAME']))
+
+    def extract_features(self, corpus, return_ids=False):
+        graphs = self.model.parse_sents(corpus, add_metadata=False)
+        if return_ids:
+            graphs, corpus, list(range(len(corpus)))
+        return graphs, corpus
+
+    def calculate_similarities(self, features):
+        num_embeddings = len(features)
+
+        Z = np.eye(num_embeddings)
+        iu = np.triu_indices(num_embeddings, k=1)
+        il = (iu[1], iu[0])
+
+        iterable = range(num_embeddings)
+        if self.config['verbose']:
+            print('calculating similarity matrix...')
+            iterable = tqdm(iterable)
+
+        for e1 in iterable:
+            for e2 in range(1, num_embeddings - e1):
+                s = self.scorer([features[e1]], [features[e1 + e2]])[0]
+                Z[e1][e1 + e2] = s
+        Z[il] = Z[iu]
+        return Z
+
+    def calculate_similarity_vector(self, q_feat, c_feat):
+        z = np.array([self.scorer([q_feat], [f])[0] for f in c_feat])
+        return z
+
+    def calculate_abundance(self, species):
+        num_species = len(species)
+        p = np.full(num_species, 1 / num_species)
+        return p
+
+    def __call__(self, response_set): 
+        return super().__call__(response_set)
+
+
+
 if __name__ == '__main__':
 
     # TEST
@@ -565,6 +629,7 @@ if __name__ == '__main__':
     print_div_metric(TokenEmbeddingDiversity, lo_div, hi_div)
     print_div_metric(STokenSemanticDiversity, lo_div, hi_div)
     print_div_metric(DocumentSemanticDiversity, lo_div, hi_div)
+    print_div_metric(AMRDiversity, lo_div, hi_div)
 
     # similarities
     print("similarities")
@@ -572,9 +637,11 @@ if __name__ == '__main__':
     print_sim_metric(TokenEmbeddingDiversity, lo_div, hi_div)
     print_sim_metric(STokenSemanticDiversity, lo_div, hi_div)
     print_sim_metric(DocumentSemanticDiversity, lo_div, hi_div)
+    print_sim_metric(AMRDiversity, lo_div, hi_div)
 
     # rank similarities
     print("rankings")
     print_ranking(DocumentSemanticDiversity, ["a big planet"], lo_div + hi_div)
+    print_ranking(AMRDiversity, ["a big planet"], lo_div + hi_div)
 
     # (textdiv) ~\GitHub\TextDiversity\src>python -m textdiversity.text_diversities.semantic
