@@ -2,6 +2,7 @@ import numpy as np
 from collections import defaultdict 
 from ..text_diversities import (
     DocumentSemanticDiversity,
+    AMRDiversity,
     POSSequenceDiversity,
     RhythmicDiversity,
     DependencyDiversity,
@@ -14,18 +15,21 @@ class TextFetch:
 
         # featurizers
         self.semantic_featurizer = DocumentSemanticDiversity()
+        self.amr_featurizer = AMRDiversity()
         self.syntactic_featurizer = DependencyDiversity()
         self.morphological_featurizer = POSSequenceDiversity()
         self.phonological_featurizer = RhythmicDiversity()
 
         # pre-computed features
         self.semantic_features = None
+        self.amr_features = None
         self.syntactic_features = None
         self.morphological_features = None
         self.phonological_features = None
 
         # pre-computed text parses
         self.semantic_text = None
+        self.amr_text = None
         self.syntactic_text = None
         self.morphological_text = None
         self.phonological_text = None
@@ -35,6 +39,12 @@ class TextFetch:
         self.semantic_features = features
         self.semantic_text = texts
         self.semantic_text_ids = text_ids
+
+    def compute_amr_features(self) -> None:
+        features, texts, text_ids = self.amr_featurizer.extract_features(self.texts, return_ids=True)
+        self.amr_features = features
+        self.amr_text = texts
+        self.amr_text_ids = text_ids
 
     def compute_syntactic_features(self) -> None:
         features, texts, text_ids = self.syntactic_featurizer.extract_features(self.texts, return_ids=True)
@@ -56,6 +66,7 @@ class TextFetch:
 
     def compute_features(self) -> None:
         self.compute_semantic_features()
+        self.compute_amr_features()
         self.compute_syntactic_features()
         self.compute_morphological_features()
         # self.compute_phonological_features()
@@ -66,6 +77,11 @@ class TextFetch:
             t_feats = self.semantic_features
             t_texts = self.semantic_text
             t_ids   = self.semantic_text_ids
+        elif "amr" in linguistic_type:
+            ranker  = self.amr_featurizer
+            t_feats = self.amr_features
+            t_texts = self.amr_text
+            t_ids   = self.amr_text_ids
         elif "syntactic" in linguistic_type:
             ranker  = self.syntactic_featurizer
             t_feats = self.syntactic_features
@@ -149,7 +165,7 @@ if __name__ == "__main__":
 
     print(f"query: {query}")
 
-    linguistic_features = ["semantic", "syntactic", "morphological"] #, "phonological"]
+    linguistic_features = ["semantic", "amr", "syntactic", "morphological"] #, "phonological"]
 
     print("search_for_text")
     for lf in linguistic_features:
@@ -170,21 +186,43 @@ if __name__ == "__main__":
             print(f"score: {round(score, 2)} | id: {id} | text: {dataset['text'][id]}")  
 
     # (textdiv) (textdiv) ~\TextDiversity\src>python -m textdiversity.search.textfetch
-    # precomputation took 16.57 seconds
+    # precomputation took 203.26 seconds
     # query: long streaks of hilarious gags in this movie
+    # search_for_text
 
-    # semantic search (0.1s)
-    # score: 0.87 | text: rich veins of funny stuff in this movie
-    # score: 0.79 | text: more than another `` best man '' clone by weaving a theme throughout this funny film
-    # score: 0.77 | text: , this gender-bending comedy is generally quite funny .
+    # semantic search (0.07s)
+    # score: 0.87 | text: rich veins of funny stuff in this movie 
+    # score: 0.79 | text: more than another `` best man '' clone by weaving a theme throughout this funny film 
+    # score: 0.77 | text: , this gender-bending comedy is generally quite funny . 
 
-    # syntactic search (1.18s)
+    # amr search (1.41s)
+    # score: 0.3 | text: love this movie 
+    # score: 0.29 | text: rich veins of funny stuff in this movie 
+    # score: 0.28 | text: in this wildly uneven movie 
+
+    # syntactic search (0.12s)
     # score: 1.0 | text: rich veins of funny stuff in this movie
-    # score: 0.4099999964237213 | text: a sour taste in one 's mouth
-    # score: 0.4099999964237213 | text: we never feel anything for these characters
+    # score: 0.41 | text: a sour taste in one 's mouth
+    # score: 0.41 | text: we never feel anything for these characters
 
-    # morphological search (0.19s)
+    # morphological search (0.09s)
     # score: 1.0 | text: rich veins of funny stuff in this movie
-    # score: 0.75 | text: by far the worst movie of the year
     # score: 0.75 | text: sharp edges and a deep vein of sadness
+    # score: 0.75 | text: by far the worst movie of the year
+    # search_for_ids
+
+    # semantic search (0.06s)
+    # score: 0.87 | id: 60 | text: rich veins of funny stuff in this movie 
+    # score: 0.79 | id: 35 | text: more than another `` best man '' clone by weaving a theme throughout this funny film 
+    # score: 0.77 | id: 105 | text: , this gender-bending comedy is generally quite funny . 
+
+    # amr search (1.38s)
+    # score: 0.3 | id: 698 | text: love this movie 
+    # score: 0.29 | id: 60 | text: rich veins of funny stuff in this movie 
+    # score: 0.28 | id: 181 | text: in this wildly uneven movie 
+
+    # syntactic search (0.13s)
+    # score: 1.0 | id: 60 | text: rich veins of funny stuff in this movie 
+    # score: 0.41 | id: 554 | text: a sour taste in one 's mouth 
+    # score: 0.41 | id: 66 | text: we never feel anything for these characters 
         

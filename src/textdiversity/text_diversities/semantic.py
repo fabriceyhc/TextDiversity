@@ -561,7 +561,8 @@ class AMRDiversity(TextDiversity):
         'normalize': False,
         'verbose': False,
         # AMRDiversity configs
-        'use_gpu': True
+        'use_gpu': True,
+        'batch_size': 4
     }
 
     def __init__(self, config={}):
@@ -573,7 +574,7 @@ class AMRDiversity(TextDiversity):
         # make sure stog model is downloaded 
         # to amrlib's package repo
         download_stog_model()
-        self.model = amrlib.load_stog_model(device=self.device)
+        self.model = amrlib.load_stog_model(device=self.device, batch_size=self.config['batch_size'])
         self.scorer = WLKScorer().compute_score
 
         # print('{0} ({1})'.format(self.__class__.__name__, config['MODEL_NAME']))
@@ -581,7 +582,7 @@ class AMRDiversity(TextDiversity):
     def extract_features(self, corpus, return_ids=False):
         graphs = self.model.parse_sents(corpus, add_metadata=False)
         if return_ids:
-            graphs, corpus, list(range(len(corpus)))
+            return graphs, corpus, list(range(len(corpus)))
         return graphs, corpus
 
     def calculate_similarities(self, features):
