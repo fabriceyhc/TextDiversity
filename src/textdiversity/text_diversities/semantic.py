@@ -487,7 +487,8 @@ class DocumentSemanticDiversity(TextDiversity):
             boe = self.config['dim_reducer'](n_components=n_components).fit_transform(boe)
 
         if return_ids:
-            return boe, corpus, list(range(len(boe)))
+            ids = list(range(len(boe))) # text_ids == sentence_ids, return both
+            return boe, corpus, ids, ids
         return boe, corpus
 
     def calculate_similarities(self, features):
@@ -582,7 +583,8 @@ class AMRDiversity(TextDiversity):
     def extract_features(self, corpus, return_ids=False):
         graphs = self.model.parse_sents(corpus, add_metadata=False)
         if return_ids:
-            return graphs, corpus, list(range(len(corpus)))
+            ids = list(range(len(corpus))) # text_ids == sentence_ids, return both
+            return graphs, corpus, ids, ids
         return graphs, corpus
 
     def calculate_similarities(self, features):

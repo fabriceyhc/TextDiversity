@@ -60,7 +60,7 @@ class RhythmicDiversity(TextDiversity):
         corpus = clean_text(corpus)
 
         # split sentences
-        sentences, corpus_ids = split_sentences(corpus, return_ids=True)
+        sentences, text_ids, sentence_ids = split_sentences(corpus, return_ids=True)
 
         # strip punctuation
         sentences = [s.translate(str.maketrans('', '', string.punctuation)) for s in sentences]
@@ -88,7 +88,7 @@ class RhythmicDiversity(TextDiversity):
             rhythms = np.array([r + ['N'] * (self.max_len - len(r)) for r in rhythms])
 
         if return_ids:
-            return rhythms, sentences, corpus_ids
+            return rhythms, sentences, text_ids, sentence_ids 
         return rhythms, sentences
 
     def calculate_similarities(self, features):

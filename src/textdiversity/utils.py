@@ -111,15 +111,16 @@ def split_sentences(texts, return_ids=False):
     if isinstance(texts, str):
         texts = [texts]
 
-    sentences, ids = [], []
-    for id, text in enumerate(texts):
+    sentences, text_ids, sentence_ids = [], [], []
+    for text_id, text in enumerate(texts):
         sents = list(sentencizer(text).sents)
         sents = [s.text.strip() for s in sents if s.text.strip()]
         sentences.extend(sents)
-        ids.extend([id] * len(sents))
+        text_ids.extend([text_id] * len(sents))
+        sentence_ids.extend(list(range(len(sents))))
     
     if return_ids:
-        return sentences, ids
+        return sentences, text_ids, sentence_ids
     return sentences
 
 def print_div_metric(metric_class, lo_div, hi_div):

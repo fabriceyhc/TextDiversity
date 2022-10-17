@@ -125,7 +125,7 @@ class DependencyDiversity(TextDiversity):
         corpus = clean_text(corpus)
 
         # split sentences
-        sentences, corpus_ids = split_sentences(corpus, return_ids=True)
+        sentences, text_ids, sentence_ids = split_sentences(corpus, return_ids=True)
 
         # generate dependency tree graphs
         features = [self.generate_dependency_tree(s) for s in sentences]
@@ -159,7 +159,7 @@ class DependencyDiversity(TextDiversity):
             features = emb
 
         if return_ids:
-            return features, sentences, corpus_ids
+            return features, sentences, text_ids, sentence_ids
         return features, sentences
 
     def calculate_similarities(self, features):

@@ -45,7 +45,7 @@ class POSSequenceDiversity(TextDiversity):
         corpus = clean_text(corpus)
 
         # split sentences
-        sentences, corpus_ids = split_sentences(corpus, return_ids=True)
+        sentences, text_ids, sentence_ids = split_sentences(corpus, return_ids=True)
 
         # extracts parts-of-speech (poses)
         poses = []
@@ -61,7 +61,7 @@ class POSSequenceDiversity(TextDiversity):
             poses = np.array([s + ['NULL'] * (self.max_len - len(s)) for s in poses])
 
         if return_ids:
-            return poses, sentences, corpus_ids
+            return poses, sentences, text_ids, sentence_ids 
         return poses, sentences
 
     def calculate_similarities(self, features):

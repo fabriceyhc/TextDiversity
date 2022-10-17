@@ -13,6 +13,9 @@ class TextFetch:
         self.texts = texts
         self.text_ids = []
 
+        # TODO: (Akshay) add step where we connect with db (cache) 
+        # and see if we have all the data for the given ids
+        
         # featurizers
         self.semantic_featurizer = DocumentSemanticDiversity()
         self.amr_featurizer = AMRDiversity()
@@ -35,34 +38,44 @@ class TextFetch:
         self.phonological_text = None
 
     def compute_semantic_features(self) -> None:
-        features, texts, text_ids = self.semantic_featurizer.extract_features(self.texts, return_ids=True)
+        features, texts, text_ids, sentence_ids = self.semantic_featurizer.extract_features(
+            self.texts, return_ids=True)
         self.semantic_features = features
         self.semantic_text = texts
         self.semantic_text_ids = text_ids
+        self.semantic_sentence_ids = sentence_ids
 
     def compute_amr_features(self) -> None:
-        features, texts, text_ids = self.amr_featurizer.extract_features(self.texts, return_ids=True)
+        features, texts, text_ids, sentence_ids = self.amr_featurizer.extract_features(
+            self.texts, return_ids=True)
         self.amr_features = features
         self.amr_text = texts
         self.amr_text_ids = text_ids
+        self.amr_sentence_ids = sentence_ids
 
     def compute_syntactic_features(self) -> None:
-        features, texts, text_ids = self.syntactic_featurizer.extract_features(self.texts, return_ids=True)
+        features, texts, text_ids, sentence_ids = self.syntactic_featurizer.extract_features(
+            self.texts, return_ids=True)
         self.syntactic_features = features
         self.syntactic_text = texts
         self.syntactic_text_ids = text_ids
+        self.syntactic_sentence_ids = sentence_ids
 
     def compute_morphological_features(self) -> None:
-        features, texts, text_ids = self.morphological_featurizer.extract_features(self.texts, return_ids=True)
+        features, texts, text_ids, sentence_ids = self.morphological_featurizer.extract_features(
+            self.texts, return_ids=True)
         self.morphological_features = features
         self.morphological_text = texts
         self.morphological_text_ids = text_ids
+        self.morphological_sentence_ids = sentence_ids
 
     def compute_phonological_features(self) -> None:
-        features, texts, text_ids = self.phonological_featurizer.extract_features(self.texts, return_ids=True)
+        features, texts, text_ids, sentence_ids = self.phonological_featurizer.extract_features(
+            self.texts, return_ids=True)
         self.phonological_features = features
         self.phonological_features = texts
         self.phonological_text_ids = text_ids
+        self.phonological_sentence_ids = sentence_ids
 
     def compute_features(self) -> None:
         self.compute_semantic_features()
@@ -77,34 +90,39 @@ class TextFetch:
             t_feats = self.semantic_features
             t_texts = self.semantic_text
             t_ids   = self.semantic_text_ids
+            s_ids   = self.semantic_sentence_ids
         elif "amr" in linguistic_type:
             ranker  = self.amr_featurizer
             t_feats = self.amr_features
             t_texts = self.amr_text
             t_ids   = self.amr_text_ids
+            s_ids   = self.amr_sentence_ids
         elif "syntactic" in linguistic_type:
             ranker  = self.syntactic_featurizer
             t_feats = self.syntactic_features
             t_texts = self.syntactic_text
             t_ids   = self.syntactic_text_ids
+            s_ids   = self.syntactic_sentence_ids
         elif "morphological" in linguistic_type:
             ranker  = self.morphological_featurizer
             t_feats = self.morphological_features
             t_texts = self.morphological_text
             t_ids   = self.morphological_text_ids
+            s_ids   = self.morphological_sentence_ids
         elif "phonological" in linguistic_type:
             ranker  = self.phonological_featurizer
             t_feats = self.phonological_features
             t_texts = self.phonological_text
             t_ids   = self.phonological_text_ids
+            s_ids   = self.phonological_sentence_ids
         else:
             raise ValueError(f"Invalid linguistic_type: {linguistic_type}")
 
-        return ranker, t_feats, t_texts, np.array(t_ids, dtype=np.int32)
+        return ranker, t_feats, t_texts, np.array(t_ids, dtype=np.int32), np.array(s_ids, dtype=np.int32)
 
     def search_for_text(self, query: str, linguistic_type: str = "semantic", top_n: int = 1):
 
-        ranker, t_feats, t_texts, t_ids = self.get_linguistic_data(linguistic_type)
+        ranker, t_feats, t_texts, t_ids, s_ids = self.get_linguistic_data(linguistic_type)
 
         if top_n == -1:
             top_n = len(t_texts)
@@ -116,6 +134,7 @@ class TextFetch:
         # rank based on similarity
         rank_idx = np.argsort(z)[::-1]
         t_ids = t_ids[rank_idx]
+        s_ids = s_ids[rank_idx]
 
         ranking = np.array(t_texts)[rank_idx].tolist()
         scores = z[rank_idx]
@@ -124,9 +143,9 @@ class TextFetch:
 
     def search_for_ids(self, query: str, linguistic_type: str = "semantic", top_n: int = 1):
 
-        ranker, t_feats, t_texts, corpus_ids = self.get_linguistic_data(linguistic_type)
+        ranker, t_feats, t_texts, t_ids, s_ids = self.get_linguistic_data(linguistic_type)
         
-        corpus_tuples = [(corpus_id, sentence_id) for sentence_id, corpus_id in enumerate(corpus_ids)]
+        corpus_tuples = list(zip(t_ids, s_ids))
         corpus_map = defaultdict(list)
         for (corpus_id, sentence_id) in corpus_tuples:
             corpus_map[corpus_id].append(sentence_id)
@@ -140,7 +159,7 @@ class TextFetch:
 
         # rank based on similarity
         rank_idx = np.argsort(z)[::-1]
-        t_ids = np.array(corpus_ids)[rank_idx]
+        t_ids = t_ids[rank_idx]
         corpus_ids = list(dict.fromkeys(t_ids))
         corpus_scores = [z[corpus_map[id]].mean() for id in corpus_ids]
 
@@ -152,7 +171,7 @@ if __name__ == "__main__":
     from time import perf_counter
     from datasets import load_dataset
 
-    dataset = load_dataset("glue", "sst2", split="train[:1000]")
+    dataset = load_dataset("glue", "sst2", split="train[:100]")
     dataset = dataset.rename_column("sentence", "text")
 
     text_fetcher = TextFetch(dataset['text'])
