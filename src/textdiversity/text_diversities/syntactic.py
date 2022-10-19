@@ -10,6 +10,10 @@ import networkx as nx
 from karateclub import FeatherGraph, GL2Vec, Graph2Vec, LDP
 import zss
 
+# Constituency Tree
+import benepar
+benepar.download('benepar_en3')
+
 # # graphviz has compatibility issues on windows
 # from networkx.drawing.nx_pydot import graphviz_layout
 # from matplotlib import pyplot as plt
@@ -38,6 +42,9 @@ from ..utils import *
 # used with nx.graph_edit_distance() ===============================================
 def node_match_on_pos(G1_node, G2_node):
     return G1_node['pos'] == G2_node['pos']
+
+def node_match_on_labels(G1_node, G2_node):
+    return G1_node['labels'].sort() == G2_node['labels'].sort()
 
 def edge_match_on_dep(G1_edge, G2_edge):
     return G1_edge['dep'] == G2_edge['dep']
@@ -236,6 +243,172 @@ class DependencyDiversity(TextDiversity):
     def __call__(self, corpus): 
         return super().__call__(corpus)
 
+# ==================================================================================
+class ConstituencyDiversity(TextDiversity):
+
+    default_config = {
+        # TextDiversity configs
+        'q': 1,
+        'normalize': False,
+        'dim_reducer': PCA,
+        'remove_stopwords': False, 
+        'verbose': False,
+        # ConstituencyDiversity configs
+        'similarity_type':"ldp",
+        'use_gpu': False,
+        'n_components': None 
+    }
+
+    def __init__(self, config={}):
+        config = {**self.default_config, **config} 
+        super().__init__(config)
+        self.model = spacy.load('en_core_web_md')
+        if spacy.__version__.startswith('2'):
+            self.model.add_pipe(benepar.BeneparComponent("benepar_en3"))
+        else:
+            self.model.add_pipe("benepar", config={"model": "benepar_en3"})
+  
+    def generate_constituency_tree(self, in_string):
+        ''' 
+        NOTES: 
+          - Ensure the node is a string since zss tree edit distance requires it
+        '''
+        doc = self.model(in_string)
+        sent = list(doc.sents)[0]
+
+        G = nx.DiGraph()
+
+        nodes = [(str(token), {'labels': token._.labels}) 
+                 for token in list(sent._.constituents) 
+        ]
+        
+        G.add_nodes_from(nodes)
+
+        edges = [(str(token._.parent), str(token)) 
+                 for token in list(sent._.constituents) 
+                 if token._.parent != None 
+        ]
+        
+        G.add_edges_from(edges)
+        # nx.draw_networkx(G, arrows=True)
+        # plt.draw()
+        # plt.show()
+
+        return G
+
+    def extract_features(self, corpus, return_ids=False):
+        """
+        self.similarity_type: 
+          - "graph_edit_distance" --> nx.graph_edit_distance
+          - "tree_edit_distance" --> zss.simple_distance
+          - "ldp" --> karateclub.LDP (Local Degree Profile)
+          - "feather" --> karateclub.FeatherGraph
+        """
+
+        # clean corpus
+        corpus = clean_text(corpus)
+
+        # split sentences
+        sentences, corpus_ids = split_sentences(corpus, return_ids=True)
+
+        # generate constituency tree graphs
+        features = [self.generate_constituency_tree(s) for s in sentences]
+
+        # optionally embed graphs
+        if 'distance' not in self.config['similarity_type']:
+        
+            # the embedding approaches require integer node labels
+            features = [nx.convert_node_labels_to_integers(g, first_label=0, ordering='default') for g in features]
+
+            if self.config['similarity_type'] == "ldp":
+                model = LDP(bins=64) # more bins, less similarity
+                model.fit(features)
+                emb = model.get_embedding().astype(np.float32)
+            elif self.config['similarity_type'] == "feather":
+                model = FeatherGraph(theta_max=100) # higher theta, less similarity
+                model.fit(features)
+                emb = model.get_embedding().astype(np.float32)
+
+            # compress embedding to speed up similarity matrix computation
+            if self.config['n_components'] == "auto":
+                n_components = min(max(2, len(emb) // 10), emb.shape[-1])
+                if self.config['verbose']:
+                    print('Using n_components={}'.format(str(n_components)))
+            else:
+                n_components = -1
+
+            if type(n_components) == int and n_components > 0 and len(emb) > 1:
+                emb = self.config['dim_reducer'](n_components=n_components).fit_transform(emb)
+
+            features = emb
+
+        if return_ids:
+            return features, sentences, corpus_ids
+        return features, sentences
+
+    def calculate_similarities(self, features):
+        """
+        self.similarity_type: 
+          - "graph_edit_distance" --> nx.graph_edit_distance
+          - "tree_edit_distance" --> zss.simple_distance
+          - "ldp" --> karateclub.LDP (Local Degree Profile)
+          - "feather" --> karateclub.FeatherGraph
+        """
+
+        if 'distance' in self.config['similarity_type']:
+
+            if self.config['similarity_type'] == "graph_edit_distance":
+                dist_fn = partial(nx.graph_edit_distance, 
+                             node_match=node_match_on_labels)
+            elif self.config['similarity_type'] == "tree_edit_distance":
+                dist_fn = zss_tree_edit_distance
+
+            Z = compute_pairwise(features, dist_fn)
+
+            Z = Z - Z.mean()
+            Z = 1 / (1+np.e**Z)
+            np.fill_diagonal(Z, 1)
+
+        else:
+
+            Z = cos_sim(features, features).numpy()
+
+            # strongly penalize for any differences to make Z more intuitive
+            Z **= 200
+
+        return Z
+
+    def calculate_similarity_vector(self, q_feat, c_feat):
+
+        if 'distance' in self.config['similarity_type']:
+
+            if self.config['similarity_type'] == "graph_edit_distance":
+                dist_fn = partial(nx.graph_edit_distance, 
+                             node_match=node_match_on_labels)
+            elif self.config['similarity_type'] == "tree_edit_distance":
+                dist_fn = zss_tree_edit_distance
+                
+            z = np.array([dist_fn(q_feat, f) for f in c_feat])
+
+            # convert distance to similarity
+            z = z - z.mean()
+            z = 1 / (1+np.e**z)
+
+        else:
+            z = np.array([cos_sim(q_feat, f).item() for f in c_feat])
+
+            # strongly penalize for any differences to make Z more intuitive
+            z **= 200
+
+        return z
+
+    def calculate_abundance(self, species):
+        num_species = len(species)
+        p = np.full(num_species, 1 / num_species)
+        return p
+
+    def __call__(self, corpus): 
+        return super().__call__(corpus)
 
 if __name__ == '__main__':
 
@@ -243,6 +416,7 @@ if __name__ == '__main__':
     lo_div = ['one massive earth', 'an enormous globe', 'the colossal world']
     hi_div = ['basic human right', 'you were right', 'make a right']
 
+    # Dependency Diversity
     # diversities
     print("diversities")
     print_div_metric(DependencyDiversity, lo_div, hi_div)
@@ -254,5 +428,18 @@ if __name__ == '__main__':
     # rank similarities
     print("rankings")
     print_ranking(DependencyDiversity, ["burn big planets"], lo_div + hi_div)
+
+    # Constituency Diversity
+    # diversities
+    print("diversities")
+    print_div_metric(ConstituencyDiversity, lo_div, hi_div)
+
+    # similarities
+    print("similarities")
+    print_sim_metric(ConstituencyDiversity, lo_div, hi_div)
+
+    # rank similarities
+    print("rankings")
+    print_ranking(ConstituencyDiversity, ["burn big planets"], lo_div + hi_div)
 
     # (textdiv) ~\GitHub\TextDiversity\src>python -m textdiversity.text_diversities.syntactic
