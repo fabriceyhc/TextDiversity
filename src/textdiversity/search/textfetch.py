@@ -6,6 +6,7 @@ from ..text_diversities import (
     POSSequenceDiversity,
     RhythmicDiversity,
     DependencyDiversity,
+    ConstituencyDiversity,
 )
 
 class TextFetch:
@@ -20,6 +21,7 @@ class TextFetch:
         self.semantic_featurizer = DocumentSemanticDiversity()
         self.amr_featurizer = AMRDiversity()
         self.syntactic_featurizer = DependencyDiversity()
+        self.syntactic_cd_featurizer = ConstituencyDiversity()
         self.morphological_featurizer = POSSequenceDiversity()
         self.phonological_featurizer = RhythmicDiversity()
 
@@ -27,6 +29,7 @@ class TextFetch:
         self.semantic_features = None
         self.amr_features = None
         self.syntactic_features = None
+        self.syntactic_cd_features = None
         self.morphological_features = None
         self.phonological_features = None
 
@@ -34,6 +37,7 @@ class TextFetch:
         self.semantic_text = None
         self.amr_text = None
         self.syntactic_text = None
+        self.syntactic_cd_text = None
         self.morphological_text = None
         self.phonological_text = None
 
@@ -60,6 +64,14 @@ class TextFetch:
         self.syntactic_text = texts
         self.syntactic_text_ids = text_ids
         self.syntactic_sentence_ids = sentence_ids
+    
+    def compute_syntactic_cd_features(self) -> None:
+        features, texts, text_ids, sentence_ids = self.syntactic_cd_featurizer.extract_features(
+            self.texts, return_ids=True)
+        self.syntactic_cd_features = features
+        self.syntactic_cd_text = texts
+        self.syntactic_cd_text_ids = text_ids
+        self.syntactic_cd_sentence_ids = sentence_ids
 
     def compute_morphological_features(self) -> None:
         features, texts, text_ids, sentence_ids = self.morphological_featurizer.extract_features(
@@ -103,6 +115,12 @@ class TextFetch:
             t_texts = self.syntactic_text
             t_ids   = self.syntactic_text_ids
             s_ids   = self.syntactic_sentence_ids
+        elif "syntactic_cd" in linguistic_type:
+            ranker  = self.syntactic_cd_featurizer
+            t_feats = self.syntactic_cd_features
+            t_texts = self.syntactic_cd_text
+            t_ids   = self.syntactic_cd_text_ids
+            s_ids   = self.syntactic_cd_sentence_ids
         elif "morphological" in linguistic_type:
             ranker  = self.morphological_featurizer
             t_feats = self.morphological_features
@@ -184,7 +202,7 @@ if __name__ == "__main__":
 
     print(f"query: {query}")
 
-    linguistic_features = ["semantic", "amr", "syntactic", "morphological"] #, "phonological"]
+    linguistic_features = ["semantic", "amr", "syntactic", "syntactic_cd", "morphological"] #, "phonological"]
 
     print("search_for_text")
     for lf in linguistic_features:
