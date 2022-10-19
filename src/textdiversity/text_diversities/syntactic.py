@@ -304,12 +304,12 @@ class ConstituencyDiversity(TextDiversity):
           - "ldp" --> karateclub.LDP (Local Degree Profile)
           - "feather" --> karateclub.FeatherGraph
         """
-
+        
         # clean corpus
         corpus = clean_text(corpus)
 
         # split sentences
-        sentences, corpus_ids = split_sentences(corpus, return_ids=True)
+        sentences, text_ids, sentence_ids = split_sentences(corpus, return_ids=True)
 
         # generate constituency tree graphs
         features = [self.generate_constituency_tree(s) for s in sentences]
@@ -343,7 +343,7 @@ class ConstituencyDiversity(TextDiversity):
             features = emb
 
         if return_ids:
-            return features, sentences, corpus_ids
+            return features, sentences, text_ids, sentence_ids
         return features, sentences
 
     def calculate_similarities(self, features):
