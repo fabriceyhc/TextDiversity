@@ -1,9 +1,7 @@
 # TextDiversity pkgs
 import spacy
-import torch
 import numpy as np
 import pandas as pd
-import itertools
 from functools import partial
 import logging
 logging.basicConfig(level=logging.CRITICAL)
@@ -46,7 +44,8 @@ class RhythmicDiversity(TextDiversity):
         'remove_stopwords': False, 
         'verbose': False,
         # RhythmicDiversity configs
-        'pad_to_max_len': False
+        'pad_to_max_len': False,
+        'split_sentences': False,
     }
 
     def __init__(self, config={}):
@@ -60,17 +59,21 @@ class RhythmicDiversity(TextDiversity):
         corpus = clean_text(corpus)
 
         # split sentences
-        sentences, text_ids, sentence_ids = split_sentences(corpus, return_ids=True)
+        if self.config['split_sentences']:
+            corpus, text_ids, sentence_ids = split_sentences(corpus, return_ids=True)
+        else:
+            ids = list(range(len(corpus)))
+            text_ids, sentence_ids = ids, ids
 
         # strip punctuation
-        sentences = [s.translate(str.maketrans('', '', string.punctuation)) for s in sentences]
+        corpus = [d.translate(str.maketrans('', '', string.punctuation)) for d in corpus]
 
-        # remove any blank sentences...
-        sentences = [s for s in sentences if len(s.strip()) > 0]
+        # remove any blanks...
+        corpus = [d for d in corpus if len(d.strip()) > 0]
 
         # extracts rhythms (sequences of [un]weighted [un]stressed syllables)
         rhythms = []
-        for s in sentences:
+        for s in corpus:
             prose = cd.Prose(s)
             df = prose.sylls().reset_index()
             if all([c in df.columns for c in ['syll_stress', 'syll_weight']]):
@@ -88,8 +91,8 @@ class RhythmicDiversity(TextDiversity):
             rhythms = np.array([r + ['N'] * (self.max_len - len(r)) for r in rhythms])
 
         if return_ids:
-            return rhythms, sentences, text_ids, sentence_ids 
-        return rhythms, sentences
+            return rhythms, corpus, text_ids, sentence_ids 
+        return rhythms, corpus
 
     def calculate_similarities(self, features):
         """

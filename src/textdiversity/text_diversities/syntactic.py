@@ -85,7 +85,8 @@ class DependencyDiversity(TextDiversity):
         # DependencyDiversity configs
         'similarity_type':"ldp",
         'use_gpu': False,
-        'n_components': None 
+        'n_components': None,
+        'split_sentences': False,
     }
 
     def __init__(self, config={}):
@@ -132,10 +133,17 @@ class DependencyDiversity(TextDiversity):
         corpus = clean_text(corpus)
 
         # split sentences
-        sentences, text_ids, sentence_ids = split_sentences(corpus, return_ids=True)
+        if self.config['split_sentences']:
+            corpus, text_ids, sentence_ids = split_sentences(corpus, return_ids=True)
+        else:
+            ids = list(range(len(corpus)))
+            text_ids, sentence_ids = ids, ids
+
+        # remove any blanks...
+        corpus = [d for d in corpus if len(d.strip()) > 0]
 
         # generate dependency tree graphs
-        features = [self.generate_dependency_tree(s) for s in sentences]
+        features = [self.generate_dependency_tree(d) for d in corpus]
 
         # optionally embed graphs
         if 'distance' not in self.config['similarity_type']:
@@ -166,8 +174,8 @@ class DependencyDiversity(TextDiversity):
             features = emb
 
         if return_ids:
-            return features, sentences, text_ids, sentence_ids
-        return features, sentences
+            return features, corpus, text_ids, sentence_ids
+        return features, corpus
 
     def calculate_similarities(self, features):
         """
@@ -256,13 +264,14 @@ class ConstituencyDiversity(TextDiversity):
         # ConstituencyDiversity configs
         'similarity_type':"ldp",
         'use_gpu': False,
-        'n_components': None 
+        'n_components': None,
+        'split_sentences': False, 
     }
 
     def __init__(self, config={}):
         config = {**self.default_config, **config} 
         super().__init__(config)
-        self.model = spacy.load('en_core_web_md')
+        self.model = spacy.load('en_core_web_sm')
         if spacy.__version__.startswith('2'):
             self.model.add_pipe(benepar.BeneparComponent("benepar_en3"))
         else:
@@ -309,10 +318,17 @@ class ConstituencyDiversity(TextDiversity):
         corpus = clean_text(corpus)
 
         # split sentences
-        sentences, text_ids, sentence_ids = split_sentences(corpus, return_ids=True)
+        if self.config['split_sentences']:
+            corpus, text_ids, sentence_ids = split_sentences(corpus, return_ids=True)
+        else:
+            ids = list(range(len(corpus)))
+            text_ids, sentence_ids = ids, ids
+
+        # remove any blanks...
+        corpus = [d for d in corpus if len(d.strip()) > 0]
 
         # generate constituency tree graphs
-        features = [self.generate_constituency_tree(s) for s in sentences]
+        features = [self.generate_constituency_tree(d) for d in corpus]
 
         # optionally embed graphs
         if 'distance' not in self.config['similarity_type']:
@@ -343,8 +359,8 @@ class ConstituencyDiversity(TextDiversity):
             features = emb
 
         if return_ids:
-            return features, sentences, text_ids, sentence_ids
-        return features, sentences
+            return features, corpus, text_ids, sentence_ids
+        return features, corpus
 
     def calculate_similarities(self, features):
         """

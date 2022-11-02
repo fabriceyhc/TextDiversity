@@ -1,6 +1,5 @@
 # TextDiversity pkgs
 import spacy
-import torch
 import numpy as np
 from sklearn.decomposition import PCA
 
@@ -31,7 +30,8 @@ class POSSequenceDiversity(TextDiversity):
         # POSSequenceDiversity configs
         'pad_to_max_len': False, 
         'use_gpu': False,
-        'n_components': None 
+        'n_components': None,
+        'split_sentences': False,
     }
 
     def __init__(self, config={}):
@@ -45,11 +45,18 @@ class POSSequenceDiversity(TextDiversity):
         corpus = clean_text(corpus)
 
         # split sentences
-        sentences, text_ids, sentence_ids = split_sentences(corpus, return_ids=True)
+        if self.config['split_sentences']:
+            corpus, text_ids, sentence_ids = split_sentences(corpus, return_ids=True)
+        else:
+            ids = list(range(len(corpus)))
+            text_ids, sentence_ids = ids, ids
+
+        # remove any blanks...
+        corpus = [d for d in corpus if len(d.strip()) > 0]
 
         # extracts parts-of-speech (poses)
         poses = []
-        for s in sentences:
+        for s in corpus:
             pos = [token.pos_ for token in self.model(s)] #if token.text not in stopwords]
             poses.append(pos)
 
@@ -61,8 +68,8 @@ class POSSequenceDiversity(TextDiversity):
             poses = np.array([s + ['NULL'] * (self.max_len - len(s)) for s in poses])
 
         if return_ids:
-            return poses, sentences, text_ids, sentence_ids 
-        return poses, sentences
+            return poses, corpus, text_ids, sentence_ids 
+        return poses, corpus
 
     def calculate_similarities(self, features):
         """
