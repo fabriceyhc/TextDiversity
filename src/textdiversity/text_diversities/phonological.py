@@ -68,8 +68,8 @@ class RhythmicDiversity(TextDiversity):
         # strip punctuation
         corpus = [d.translate(str.maketrans('', '', string.punctuation)) for d in corpus]
 
-        # remove any blanks...
-        corpus = [d for d in corpus if len(d.strip()) > 0]
+        # # remove any blanks...
+        # corpus = [d for d in corpus if len(d.strip()) > 0]
 
         # extracts rhythms (sequences of [un]weighted [un]stressed syllables)
         rhythms = []

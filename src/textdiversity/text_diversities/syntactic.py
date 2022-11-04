@@ -139,8 +139,8 @@ class DependencyDiversity(TextDiversity):
             ids = list(range(len(corpus)))
             text_ids, sentence_ids = ids, ids
 
-        # remove any blanks...
-        corpus = [d for d in corpus if len(d.strip()) > 0]
+        # # remove any blanks...
+        # corpus = [d for d in corpus if len(d.strip()) > 0]
 
         # generate dependency tree graphs
         features = [self.generate_dependency_tree(d) for d in corpus]
@@ -324,8 +324,8 @@ class ConstituencyDiversity(TextDiversity):
             ids = list(range(len(corpus)))
             text_ids, sentence_ids = ids, ids
 
-        # remove any blanks...
-        corpus = [d for d in corpus if len(d.strip()) > 0]
+        # # remove any blanks...
+        # corpus = [d for d in corpus if len(d.strip()) > 0]
 
         # generate constituency tree graphs
         features = [self.generate_constituency_tree(d) for d in corpus]

@@ -51,8 +51,8 @@ class POSSequenceDiversity(TextDiversity):
             ids = list(range(len(corpus)))
             text_ids, sentence_ids = ids, ids
 
-        # remove any blanks...
-        corpus = [d for d in corpus if len(d.strip()) > 0]
+        # # remove any blanks...
+        # corpus = [d for d in corpus if len(d.strip()) > 0]
 
         # extracts parts-of-speech (poses)
         poses = []
