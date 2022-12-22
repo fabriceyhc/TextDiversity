@@ -7,6 +7,7 @@ import itertools
 import numpy as np
 import torch
 from spacy.lang.en import English
+import faiss
 
 def chunker(seq, size):
     return (seq[pos:pos + size] for pos in range(0, len(seq), size))
@@ -72,7 +73,7 @@ def cos_sim(a, b):
     b_norm = torch.nn.functional.normalize(b, p=2, dim=1)
     return torch.mm(a_norm, b_norm.transpose(0, 1))
 
-def compute_pairwise(inputs, fn, diagonal_val=0, verbose=True):
+def compute_Z_pairwise(inputs, fn, diagonal_val=1, verbose=True):
     num_inputs = len(inputs)
 
     Z = np.eye(num_inputs)
@@ -93,6 +94,61 @@ def compute_pairwise(inputs, fn, diagonal_val=0, verbose=True):
         np.fill_diagonal(Z, diagonal_val)
         
     return Z
+
+def negative_exponentiation(Z):
+    return np.exp(Z * -1)
+
+def complement(Z):
+    return 1 - Z
+
+def compute_Z_faiss(features, distance_fn, postprocess_fn=None):
+
+    if postprocess_fn == "exp":
+        postprocess_fn = negative_exponentiation
+    elif postprocess_fn == "invert":
+        postprocess_fn = complement
+    else:
+        postprocess_fn = None
+    
+    num_features, dims = features.shape
+    dims = int(dims)
+    if distance_fn == faiss.METRIC_INNER_PRODUCT:
+        faiss.normalize_L2(features) 
+
+    index = faiss.IndexFlat(dims, distance_fn) 
+    index.add(features)
+    D, I = index.search(features, num_features) 
+
+    Z = np.zeros((num_features, num_features))
+    for i, (points, distances) in enumerate(zip(I, D)):
+        Z[i][points] = distances
+    Z = postprocess_fn(Z) if postprocess_fn is not None else Z
+    np.fill_diagonal(Z, 1)
+
+    return Z
+
+def similarity_search(query_features, corpus_features, distance_fn, postprocess_fn=None):
+
+    if postprocess_fn == "exp":
+        postprocess_fn = negative_exponentiation
+    elif postprocess_fn == "invert":
+        postprocess_fn = complement
+    else:
+        postprocess_fn = None
+    
+    num_features, dims = corpus_features.shape
+    dims = int(dims)
+    if distance_fn == faiss.METRIC_INNER_PRODUCT:
+        faiss.normalize_L2(corpus_features) 
+        if len(query_features.shape) == 1:
+            query_features = np.expand_dims(query_features, 0)
+        faiss.normalize_L2(query_features) 
+
+    index = faiss.IndexFlat(dims, distance_fn) 
+    index.add(corpus_features)
+    D, I = index.search(query_features, num_features) 
+    D = postprocess_fn(D) if postprocess_fn is not None else D
+    return D[0]
 
 def clean_text(texts):
     texts = [text.replace("<br />", "") for text in texts]

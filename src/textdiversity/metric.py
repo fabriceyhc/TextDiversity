@@ -69,6 +69,9 @@ class TextDiversity(DiversityMetric):
         super().__init__(config)
 
     def __call__(self, corpus):
+        return self.diversity(corpus)
+
+    def diversity(self, corpus):
 
         if not all([type(d) == str and d.strip() != "" for d in corpus]):
             print('corpus contains invalid inputs: \n {} \n returning 0'.format(corpus))

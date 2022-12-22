@@ -5,7 +5,7 @@ from itertools import chain
 import torch
 import numpy as np
 from sklearn.decomposition import PCA
-from scipy.spatial import distance
+import faiss
 
 import transformers
 from transformers import AutoModel, AutoTokenizer
@@ -35,13 +35,13 @@ transformers.logging.set_verbosity_error()
 # ==================================================================================
 
 
-class TokenSemanticDiversity(TextDiversity):
+class TokenSemantics(TextDiversity):
 
     default_config = {
         # TextDiversity configs
         'q': 1,
         'normalize': False,
-        'distance_fn': distance.chebyshev, 
+        'distance_fn': faiss.METRIC_Linf, # https://github.com/facebookresearch/faiss/blob/main/faiss/MetricType.h
         'dim_reducer': PCA,
         'remove_stopwords': False, 
         'remove_punct': False,
@@ -49,10 +49,10 @@ class TokenSemanticDiversity(TextDiversity):
         'power_reg': False, 
         'mean_adj': True,
         'verbose': False,
-        # TokenSemanticDiversity configs
+        # TokenSemantics configs
         'MODEL_NAME': "bert-base-uncased", # "roberta-base", "microsoft/deberta-large", # "bert-base-uncased", # "facebook/bart-large-cnn",
         'batch_size': 16,
-        'use_gpu': True,
+        'use_cuda': True,
         'n_components': None 
     }
 
@@ -67,23 +67,18 @@ class TokenSemanticDiversity(TextDiversity):
             self.tokenizer.sep_token_id
         ]
         self.batch_size = config['batch_size']
-        self.device = torch.device('cuda' if config['use_gpu'] and torch.cuda.is_available() else 'cpu')
+        self.use_cuda = True if config['use_cuda'] and torch.cuda.is_available() else False
+        self.device = torch.device('cuda' if self.use_cuda else 'cpu')
 
         # move model to device
         if isinstance(self.model, torch.nn.Module):
             self.model.to(self.device)
 
-        # print('{0} ({1})'.format(self.__class__.__name__, config['MODEL_NAME']))
-
     def encode(self, input_ids, attention_mask):
         self.model.eval()
         with torch.no_grad():
             out = self.model(input_ids, attention_mask=attention_mask, output_hidden_states=True)
-        # emb = out.last_hidden_state
         emb = out.hidden_states[-2]
-        # emb = torch.stack(out.hidden_states[-4:]).mean(axis=0)
-        # emb = torch.stack(out.hidden_states[-4:]).sum(axis=0)
-        # emb = torch.cat(out.hidden_states[-4:], dim=-1)
         return emb
 
     def extract_features(self, corpus):
@@ -97,7 +92,7 @@ class TokenSemanticDiversity(TextDiversity):
         outputs = []
         for input_ids, attention_mask in batches:
             emb = self.encode(input_ids.to(self.device), 
-                       attention_mask.to(self.device))
+                              attention_mask.to(self.device))
             outputs.append(emb)
         embeddings = torch.cat(outputs)
 
@@ -137,34 +132,11 @@ class TokenSemanticDiversity(TextDiversity):
 
         return boe, tok
 
-    # def calculate_similarities(self, features):
-    #     Z = compute_pairwise(features, self.config['distance_fn'])
-    #     Z = Z - Z.mean()
-    #     Z = 1 / (1+np.e**Z)
-    #     np.fill_diagonal(Z, 1)
-    #     return Z
-
     def calculate_similarities(self, features):
-        num_embeddings = len(features)
 
-        Z = np.eye(num_embeddings)
-        iu = np.triu_indices(num_embeddings, k=1)
-        il = (iu[1], iu[0])
-
-        iterable = range(num_embeddings)
-        if self.config['verbose']:
-            print('calculating similarity matrix...')
-            iterable = tqdm(iterable)
-
-        for e1 in iterable:
-            for e2 in range(1, num_embeddings - e1):
-                d = self.config['distance_fn'](features[e1], features[e1 + e2])
-                if self.config['scale_dist'] == "exp":
-                    d = np.exp(-d)
-                elif self.config['scale_dist'] == "invert":
-                    d = 1 - d
-                Z[e1][e1 + e2] = d     
-        Z[il] = Z[iu]
+        Z = compute_Z_faiss(features=features, 
+                            distance_fn=self.config['distance_fn'], 
+                            postprocess_fn=self.config['scale_dist'])
 
         # remove some noise from the Z similarities
         if self.config['power_reg']:
@@ -179,8 +151,7 @@ class TokenSemanticDiversity(TextDiversity):
         return Z
 
     def calculate_similarity_vector(self, q_feat, c_feat):
-        raise Exception("Ranking requires metrics that operate on the document level. Try DocumentSemanticDiversity instead.")
-
+        raise Exception("Ranking requires metrics that operate on the document level. Try DocumentSemantics instead.")
 
     def calculate_abundance(self, species):
         num_species = len(species)
@@ -191,13 +162,13 @@ class TokenSemanticDiversity(TextDiversity):
         return super().__call__(response_set)
 
 
-class TokenEmbeddingDiversity(TextDiversity):
+class TokenEmbedding(TextDiversity):
 
     default_config = {
         # TextDiversity configs
         'q': 1,
         'normalize': False,
-        'distance_fn': distance.chebyshev, 
+        'distance_fn': faiss.METRIC_Linf,
         'dim_reducer': PCA,
         'remove_stopwords': False, 
         'remove_punct': False,
@@ -205,7 +176,7 @@ class TokenEmbeddingDiversity(TextDiversity):
         'power_reg': False, 
         'mean_adj': True,
         'verbose': False,
-        # TokenEmbeddingDiversity configs
+        # TokenEmbedding configs
         'EMBEDDING': 'word2vec-google-news-300', # glove-wiki-gigaword-300, fasttext-wiki-news-subwords-300, 'word2vec-google-news-300'
         'batch_size': 16,
         'n_components': None  
@@ -267,26 +238,10 @@ class TokenEmbeddingDiversity(TextDiversity):
         return boe, tok
 
     def calculate_similarities(self, features):
-        num_embeddings = len(features)
 
-        Z = np.eye(num_embeddings)
-        iu = np.triu_indices(num_embeddings, k=1)
-        il = (iu[1], iu[0])
-
-        iterable = range(num_embeddings)
-        if self.config['verbose']:
-            print('calculating similarity matrix...')
-            iterable = tqdm(iterable)
-
-        for e1 in iterable:
-            for e2 in range(1, num_embeddings - e1):
-                d = self.config['distance_fn'](features[e1], features[e1 + e2])
-                if self.config['scale_dist'] == "exp":
-                    d = np.exp(-d)
-                elif self.config['scale_dist'] == "invert":
-                    d = 1 - d
-                Z[e1][e1 + e2] = d     
-        Z[il] = Z[iu]
+        Z = compute_Z_faiss(features=features, 
+                            distance_fn=self.config['distance_fn'], 
+                            postprocess_fn=self.config['scale_dist'])
 
         # remove some noise from the Z similarities
         if self.config['power_reg']:
@@ -300,10 +255,8 @@ class TokenEmbeddingDiversity(TextDiversity):
 
         return Z
 
-
     def calculate_similarity_vector(self, q_feat, c_feat):
-        raise Exception("Ranking requires metrics that operate on the document level. Try DocumentSemanticDiversity instead.")
-
+        raise Exception("Ranking requires metrics that operate on the document level. Try DocumentSemantics instead.")
 
     def calculate_abundance(self, species):
         num_species = len(species)
@@ -314,30 +267,29 @@ class TokenEmbeddingDiversity(TextDiversity):
         return super().__call__(response_set)
 
 
-class STokenSemanticDiversity(TextDiversity):
-
+class STokenSemantics(TextDiversity):
     default_config = {
         # TextDiversity configs
         'q': 1,
         'normalize': False,
-        'distance_fn': distance.cosine, 
+        'distance_fn': faiss.METRIC_INNER_PRODUCT, # used for cosine similarity
         'dim_reducer': PCA,
         'remove_stopwords': False, 
         'remove_punct': True,
-        'scale_dist': "invert", 
+        'scale_dist': None, 
         'power_reg': False, 
         'mean_adj': False,
         'verbose': False,
         # SentenceSemanticDiversity configs
         'MODEL_NAME':"bert-large-nli-stsb-mean-tokens",
-        'use_gpu': True,
+        'use_cuda': True,
         'n_components': None 
     }
 
     def __init__(self, config={}):
         config = {**self.default_config, **config} 
         super().__init__(config)
-        self.device = torch.device('cuda' if config['use_gpu'] and torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda' if config['use_cuda'] and torch.cuda.is_available() else 'cpu')
         self.model = SentenceTransformer(config['MODEL_NAME'], device=self.device)
         self.config['verbose'] = config['verbose']
         self.undesirable_tokens = [
@@ -398,26 +350,10 @@ class STokenSemanticDiversity(TextDiversity):
         return boe, tok
 
     def calculate_similarities(self, features):
-        num_embeddings = len(features)
 
-        Z = np.eye(num_embeddings)
-        iu = np.triu_indices(num_embeddings, k=1)
-        il = (iu[1], iu[0])
-
-        iterable = range(num_embeddings)
-        if self.config['verbose']:
-            print('calculating similarity matrix...')
-            iterable = tqdm(iterable)
-
-        for e1 in iterable:
-            for e2 in range(1, num_embeddings - e1):
-                d = self.config['distance_fn'](features[e1], features[e1 + e2])
-                if self.config['scale_dist'] == "exp":
-                    d = np.exp(-d)
-                elif self.config['scale_dist'] == "invert":
-                    d = 1 - d
-                Z[e1][e1 + e2] = d     
-        Z[il] = Z[iu]
+        Z = compute_Z_faiss(features=features, 
+                            distance_fn=self.config['distance_fn'], 
+                            postprocess_fn=self.config['scale_dist'])
 
         # remove some noise from the Z similarities
         if self.config['power_reg']:
@@ -432,7 +368,7 @@ class STokenSemanticDiversity(TextDiversity):
         return Z
 
     def calculate_similarity_vector(self, q_feat, c_feat):
-        raise Exception("Ranking requires metrics that operate on the document level. Try DocumentSemanticDiversity instead.")
+        raise Exception("Ranking requires metrics that operate on the document level. Try DocumentSemantics instead.")
 
     def calculate_abundance(self, species):
         num_species = len(species)
@@ -443,29 +379,29 @@ class STokenSemanticDiversity(TextDiversity):
         return super().__call__(response_set)
 
 
-class DocumentSemanticDiversity(TextDiversity):
+class DocumentSemantics(TextDiversity):
 
     default_config = {
         # TextDiversity configs
         'q': 1,
         'normalize': False,
-        'distance_fn': distance.cosine, 
+        'distance_fn': faiss.METRIC_INNER_PRODUCT, # used for cosine similarity
         'dim_reducer': PCA,
         'remove_stopwords': False, 
-        'scale_dist': "invert", 
+        'scale_dist': None, 
         'power_reg': False, 
         'mean_adj': False,
         'verbose': False,
-        # DocumentSemanticDiversity configs
+        # DocumentSemantics configs
         'MODEL_NAME': "princeton-nlp/sup-simcse-roberta-large", # "bert-large-nli-stsb-mean-tokens",
-        'use_gpu': True,
+        'use_cuda': True,
         'n_components': None
     }
 
     def __init__(self, config={}):
         config = {**self.default_config, **config} 
         super().__init__(config)
-        self.device = torch.device('cuda' if config['use_gpu'] and torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda' if config['use_cuda'] and torch.cuda.is_available() else 'cpu')
         self.model = SentenceTransformer(config['MODEL_NAME'], device=self.device)
         self.config['verbose'] = config['verbose']
 
@@ -492,26 +428,10 @@ class DocumentSemanticDiversity(TextDiversity):
         return boe, corpus
 
     def calculate_similarities(self, features):
-        num_embeddings = len(features)
-
-        Z = np.eye(num_embeddings)
-        iu = np.triu_indices(num_embeddings, k=1)
-        il = (iu[1], iu[0])
-
-        iterable = range(num_embeddings)
-        if self.config['verbose']:
-            print('calculating similarity matrix...')
-            iterable = tqdm(iterable)
-
-        for e1 in iterable:
-            for e2 in range(1, num_embeddings - e1):
-                d = self.config['distance_fn'](features[e1], features[e1 + e2])
-                if self.config['scale_dist'] == "exp":
-                    d = np.exp(-d)
-                elif self.config['scale_dist'] == "invert":
-                    d = 1 - d
-                Z[e1][e1 + e2] = d     
-        Z[il] = Z[iu]
+        
+        Z = compute_Z_faiss(features=features, 
+                            distance_fn=self.config['distance_fn'], 
+                            postprocess_fn=self.config['scale_dist'])
 
         # remove some noise from the Z similarities
         if self.config['power_reg']:
@@ -528,12 +448,10 @@ class DocumentSemanticDiversity(TextDiversity):
 
     def calculate_similarity_vector(self, q_feat, c_feat):
 
-        z = np.array([self.config['distance_fn'](q_feat, f) for f in c_feat])
-        
-        if self.config['scale_dist'] == "exp":
-            z = np.exp(-z) 
-        elif self.config['scale_dist'] == "invert":
-            z = 1 - z
+        z = similarity_search(query_features=q_feat, 
+                              corpus_features=c_feat,
+                              distance_fn=self.config['distance_fn'], 
+                              postprocess_fn=self.config['scale_dist'])
 
         # remove some noise from the z similarities
         if self.config['power_reg']:
@@ -554,22 +472,22 @@ class DocumentSemanticDiversity(TextDiversity):
         return super().__call__(response_set)
 
 
-class AMRDiversity(TextDiversity):
+class AMR(TextDiversity):
 
     default_config = {
         # TextDiversity configs
         'q': 1,
         'normalize': False,
         'verbose': False,
-        # AMRDiversity configs
-        'use_gpu': True,
+        # AMR configs
+        'use_cuda': True,
         'batch_size': 4
     }
 
     def __init__(self, config={}):
         config = {**self.default_config, **config} 
         super().__init__(config)
-        self.device = torch.device('cuda' if config['use_gpu'] and torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda' if config['use_cuda'] and torch.cuda.is_available() else 'cpu')
         self.config['verbose'] = config['verbose']
         
         # make sure stog model is downloaded 
@@ -627,7 +545,6 @@ class AMRDiversity(TextDiversity):
         return super().__call__(response_set)
 
 
-
 if __name__ == '__main__':
 
     # TEST
@@ -636,23 +553,23 @@ if __name__ == '__main__':
 
     # diversities
     print("diversities")
-    print_div_metric(TokenSemanticDiversity, lo_div, hi_div)
-    print_div_metric(TokenEmbeddingDiversity, lo_div, hi_div)
-    print_div_metric(STokenSemanticDiversity, lo_div, hi_div)
-    print_div_metric(DocumentSemanticDiversity, lo_div, hi_div)
-    print_div_metric(AMRDiversity, lo_div, hi_div)
+    print_div_metric(TokenSemantics, lo_div, hi_div)
+    print_div_metric(TokenEmbedding, lo_div, hi_div)
+    print_div_metric(STokenSemantics, lo_div, hi_div)
+    print_div_metric(DocumentSemantics, lo_div, hi_div)
+    print_div_metric(AMR, lo_div, hi_div)
 
     # similarities
     print("similarities")
-    print_sim_metric(TokenSemanticDiversity, lo_div, hi_div)
-    print_sim_metric(TokenEmbeddingDiversity, lo_div, hi_div)
-    print_sim_metric(STokenSemanticDiversity, lo_div, hi_div)
-    print_sim_metric(DocumentSemanticDiversity, lo_div, hi_div)
-    print_sim_metric(AMRDiversity, lo_div, hi_div)
+    print_sim_metric(TokenSemantics, lo_div, hi_div)
+    print_sim_metric(TokenEmbedding, lo_div, hi_div)
+    print_sim_metric(STokenSemantics, lo_div, hi_div)
+    print_sim_metric(DocumentSemantics, lo_div, hi_div)
+    print_sim_metric(AMR, lo_div, hi_div)
 
     # rank similarities
     print("rankings")
-    print_ranking(DocumentSemanticDiversity, ["a big planet"], lo_div + hi_div)
-    print_ranking(AMRDiversity, ["a big planet"], lo_div + hi_div)
+    print_ranking(DocumentSemantics, ["a big planet"], lo_div + hi_div)
+    print_ranking(AMR, ["a big planet"], lo_div + hi_div)
 
     # (textdiv) ~\GitHub\TextDiversity\src>python -m textdiversity.text_diversities.semantic
