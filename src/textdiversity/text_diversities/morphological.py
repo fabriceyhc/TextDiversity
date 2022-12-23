@@ -10,13 +10,6 @@ from ..metric import TextDiversity
 from ..utils import *
 
 # ==================================================================================
-# helper functions 
-# ==================================================================================
-
-def align_and_score(seq1, seq2):
-    return Align.PairwiseAligner().align(seq1, seq2).score
-
-# ==================================================================================
 
 class POSSequenceDiversity(TextDiversity):
 
@@ -38,6 +31,10 @@ class POSSequenceDiversity(TextDiversity):
         config = {**self.default_config, **config} 
         super().__init__(config)
         self.model = spacy.load("en_core_web_sm")
+        self.aligner = Align.PairwiseAligner()
+
+    def align_and_score(self, seq1, seq2):
+        return self.aligner.align(seq1, seq2).score
 
     def extract_features(self, corpus, return_ids=False):
 
@@ -83,9 +80,9 @@ class POSSequenceDiversity(TextDiversity):
             features = ["".join(pos) for pos in features]
 
         # compute pairwise alignment + scoring
-        Z = compute_pairwise(
+        Z = compute_Z_pairwise(
             features, 
-            align_and_score, 
+            self.align_and_score, 
             self.max_len, 
             verbose=self.config['verbose'])
 
@@ -109,7 +106,7 @@ class POSSequenceDiversity(TextDiversity):
         q_len = len(q_feat)
         scores = []
         for f in c_feat:
-            score = align_and_score(q_feat, f)
+            score = self.align_and_score(q_feat, f)
             score /= max(len(f), q_len)
             scores.append(score)
 

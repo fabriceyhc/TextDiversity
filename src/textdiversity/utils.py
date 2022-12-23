@@ -150,6 +150,10 @@ def similarity_search(query_features, corpus_features, distance_fn, postprocess_
     D = postprocess_fn(D) if postprocess_fn is not None else D
     return D[0]
 
+def hamming(a):
+    dims = a.shape[1]
+    return (2 * np.inner(a-0.5, 0.5-a) + dims / 2) / dims
+
 def clean_text(texts):
     texts = [text.replace("<br />", "") for text in texts]
     texts = [text.replace("...", ". ") for text in texts]

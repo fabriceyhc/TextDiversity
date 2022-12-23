@@ -79,6 +79,8 @@ class DependencyDiversity(TextDiversity):
         # TextDiversity configs
         'q': 1,
         'normalize': False,
+        'distance_fn': faiss.METRIC_INNER_PRODUCT,  
+        'scale_dist': None, 
         'dim_reducer': PCA,
         'remove_stopwords': False, 
         'verbose': False,
@@ -195,7 +197,7 @@ class DependencyDiversity(TextDiversity):
             elif self.config['similarity_type'] == "tree_edit_distance":
                 dist_fn = zss_tree_edit_distance
 
-            Z = compute_pairwise(features, dist_fn)
+            Z = compute_Z_pairwise(features, dist_fn)
 
             # convert distance to similarity
 
@@ -211,7 +213,11 @@ class DependencyDiversity(TextDiversity):
 
         else:
 
-            Z = cos_sim(features, features).numpy()
+            # Z = cos_sim(features, features).numpy()
+            
+            Z = compute_Z_faiss(features=features, 
+                                distance_fn=self.config['distance_fn'], 
+                                postprocess_fn=self.config['scale_dist'])
 
             # strongly penalize for any differences to make Z more intuitive
             Z **= 200
@@ -237,6 +243,10 @@ class DependencyDiversity(TextDiversity):
 
         else:
             z = np.array([cos_sim(q_feat, f).item() for f in c_feat])
+            # z = similarity_search(query_features=q_feat, 
+            #                       corpus_features=c_feat,
+            #                       distance_fn=self.config['distance_fn'], 
+            #                       postprocess_fn=self.config['scale_dist'])
 
             # strongly penalize for any differences to make Z more intuitive
             z **= 200
@@ -258,6 +268,8 @@ class ConstituencyDiversity(TextDiversity):
         # TextDiversity configs
         'q': 1,
         'normalize': False,
+        'distance_fn': faiss.METRIC_INNER_PRODUCT,  
+        'scale_dist': None, 
         'dim_reducer': PCA,
         'remove_stopwords': False, 
         'verbose': False,
@@ -379,7 +391,7 @@ class ConstituencyDiversity(TextDiversity):
             elif self.config['similarity_type'] == "tree_edit_distance":
                 dist_fn = zss_tree_edit_distance
 
-            Z = compute_pairwise(features, dist_fn)
+            Z = compute_Z_pairwise(features, dist_fn)
 
             Z = Z - Z.mean()
             Z = 1 / (1+np.e**Z)
@@ -387,7 +399,11 @@ class ConstituencyDiversity(TextDiversity):
 
         else:
 
-            Z = cos_sim(features, features).numpy()
+            # Z = cos_sim(features, features).numpy()
+            
+            Z = compute_Z_faiss(features=features, 
+                                distance_fn=self.config['distance_fn'], 
+                                postprocess_fn=self.config['scale_dist'])
 
             # strongly penalize for any differences to make Z more intuitive
             Z **= 200
@@ -412,6 +428,10 @@ class ConstituencyDiversity(TextDiversity):
 
         else:
             z = np.array([cos_sim(q_feat, f).item() for f in c_feat])
+            # z = similarity_search(query_features=q_feat, 
+            #                       corpus_features=c_feat,
+            #                       distance_fn=self.config['distance_fn'], 
+            #                       postprocess_fn=self.config['scale_dist'])
 
             # strongly penalize for any differences to make Z more intuitive
             z **= 200
@@ -432,30 +452,20 @@ if __name__ == '__main__':
     lo_div = ['one massive earth', 'an enormous globe', 'the colossal world']
     hi_div = ['basic human right', 'you were right', 'make a right']
 
-    # Dependency Diversity
     # diversities
     print("diversities")
     print_div_metric(DependencyDiversity, lo_div, hi_div)
-
-    # similarities
-    print("similarities")
-    print_sim_metric(DependencyDiversity, lo_div, hi_div)
-
-    # rank similarities
-    print("rankings")
-    print_ranking(DependencyDiversity, ["burn big planets"], lo_div + hi_div)
-
-    # Constituency Diversity
-    # diversities
-    print("diversities")
     print_div_metric(ConstituencyDiversity, lo_div, hi_div)
 
     # similarities
     print("similarities")
+    print_sim_metric(DependencyDiversity, lo_div, hi_div)
     print_sim_metric(ConstituencyDiversity, lo_div, hi_div)
 
     # rank similarities
     print("rankings")
-    print_ranking(ConstituencyDiversity, ["burn big planets"], lo_div + hi_div)
+    print_ranking(DependencyDiversity, ["burn a planet"], lo_div + hi_div)
+    print_ranking(ConstituencyDiversity, ["burn a planet"], lo_div + hi_div)
+
 
     # (textdiv) ~\GitHub\TextDiversity\src>python -m textdiversity.text_diversities.syntactic
