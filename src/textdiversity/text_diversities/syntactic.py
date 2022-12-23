@@ -73,7 +73,7 @@ def zss_tree_edit_distance(G1, G2):
 
 # ==================================================================================
 
-class DependencyDiversity(TextDiversity):
+class DependencyParse(TextDiversity):
 
     default_config = {
         # TextDiversity configs
@@ -84,7 +84,7 @@ class DependencyDiversity(TextDiversity):
         'dim_reducer': PCA,
         'remove_stopwords': False, 
         'verbose': False,
-        # DependencyDiversity configs
+        # DependencyParse configs
         'similarity_type':"ldp",
         'use_gpu': False,
         'n_components': None,
@@ -262,7 +262,7 @@ class DependencyDiversity(TextDiversity):
         return super().__call__(corpus)
 
 # ==================================================================================
-class ConstituencyDiversity(TextDiversity):
+class ConstituencyParse(TextDiversity):
 
     default_config = {
         # TextDiversity configs
@@ -273,7 +273,7 @@ class ConstituencyDiversity(TextDiversity):
         'dim_reducer': PCA,
         'remove_stopwords': False, 
         'verbose': False,
-        # ConstituencyDiversity configs
+        # ConstituencyParse configs
         'similarity_type':"ldp",
         'use_gpu': False,
         'n_components': None,
@@ -454,18 +454,18 @@ if __name__ == '__main__':
 
     # diversities
     print("diversities")
-    print_div_metric(DependencyDiversity, lo_div, hi_div)
-    print_div_metric(ConstituencyDiversity, lo_div, hi_div)
+    print_div_metric(DependencyParse, lo_div, hi_div)
+    print_div_metric(ConstituencyParse, lo_div, hi_div)
 
     # similarities
     print("similarities")
-    print_sim_metric(DependencyDiversity, lo_div, hi_div)
-    print_sim_metric(ConstituencyDiversity, lo_div, hi_div)
+    print_sim_metric(DependencyParse, lo_div, hi_div)
+    print_sim_metric(ConstituencyParse, lo_div, hi_div)
 
     # rank similarities
     print("rankings")
-    print_ranking(DependencyDiversity, ["burn a planet"], lo_div + hi_div)
-    print_ranking(ConstituencyDiversity, ["burn a planet"], lo_div + hi_div)
+    print_ranking(DependencyParse, ["burn a planet"], lo_div + hi_div)
+    print_ranking(ConstituencyParse, ["burn a planet"], lo_div + hi_div)
 
 
     # (textdiv) ~\GitHub\TextDiversity\src>python -m textdiversity.text_diversities.syntactic

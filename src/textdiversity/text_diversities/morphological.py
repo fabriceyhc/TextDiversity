@@ -11,7 +11,7 @@ from ..utils import *
 
 # ==================================================================================
 
-class POSSequenceDiversity(TextDiversity):
+class PartOfSpeechSequence(TextDiversity):
 
     default_config = {
         # TextDiversity configs
@@ -20,7 +20,7 @@ class POSSequenceDiversity(TextDiversity):
         'dim_reducer': PCA,
         'remove_stopwords': False, 
         'verbose': False,
-        # POSSequenceDiversity configs
+        # PartOfSpeechSequence configs
         'pad_to_max_len': False, 
         'use_gpu': False,
         'n_components': None,
@@ -131,14 +131,14 @@ if __name__ == '__main__':
 
     # diversities
     print("diversities")
-    print_div_metric(POSSequenceDiversity, lo_div, hi_div)
+    print_div_metric(PartOfSpeechSequence, lo_div, hi_div)
 
     # similarities
     print("similarities")
-    print_sim_metric(POSSequenceDiversity, lo_div, hi_div)
+    print_sim_metric(PartOfSpeechSequence, lo_div, hi_div)
 
     # rank similarities
     print("rankings")
-    print_ranking(POSSequenceDiversity, ["I was wrong"], lo_div + hi_div)
+    print_ranking(PartOfSpeechSequence, ["I was wrong"], lo_div + hi_div)
 
     # (textdiv) ~\GitHub\TextDiversity\src>python -m textdiversity.text_diversities.morphological

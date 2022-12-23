@@ -28,7 +28,7 @@ from ..utils import *
 
 # ==================================================================================
 
-class RhythmicDiversity(TextDiversity):
+class Rhythmic(TextDiversity):
 
     default_config = {
         # TextDiversity configs
@@ -36,7 +36,7 @@ class RhythmicDiversity(TextDiversity):
         'normalize': False,
         'remove_stopwords': False, 
         'verbose': False,
-        # RhythmicDiversity configs
+        # Rhythmic configs
         'pad_to_max_len': False,
         'split_sentences': False,
     }
@@ -147,7 +147,7 @@ class RhythmicDiversity(TextDiversity):
         return super().__call__(corpus)
 
 
-class PhonemicDiversity(TextDiversity):
+class Phonemic(TextDiversity):
 
     default_config = {
         # TextDiversity configs
@@ -215,7 +215,7 @@ class PhonemicDiversity(TextDiversity):
         return Z
 
     def calculate_similarity_vector(self, q_feat, c_feat):
-        raise Exception("Ranking requires metrics that operate on the document level. Try RhythmicDiversity instead.")
+        raise Exception("Ranking requires metrics that operate on the document level. Try Rhythmic instead.")
 
     def calculate_abundance(self, species):
         p = np.array(list(species.values()), dtype=np.float16)
@@ -234,17 +234,17 @@ if __name__ == '__main__':
 
     # diversities
     print("diversities")
-    print_div_metric(RhythmicDiversity, lo_div, hi_div)
-    print_div_metric(PhonemicDiversity, lo_div, hi_div)
+    print_div_metric(Rhythmic, lo_div, hi_div)
+    print_div_metric(Phonemic, lo_div, hi_div)
 
     # similarities
     print("similarities")
-    print_sim_metric(RhythmicDiversity, lo_div, hi_div)
-    print_sim_metric(PhonemicDiversity, lo_div, hi_div)
+    print_sim_metric(Rhythmic, lo_div, hi_div)
+    print_sim_metric(Phonemic, lo_div, hi_div)
 
     # rank similarities
     print("rankings")
-    print_ranking(RhythmicDiversity, ["I was wrong"], lo_div + hi_div)
-    # print_ranking(PhonemicDiversity, "burn big planets", lo_div + hi_div)
+    print_ranking(Rhythmic, ["I was wrong"], lo_div + hi_div)
+    # print_ranking(Phonemic, "burn big planets", lo_div + hi_div)
 
     # (textdiv) ~\GitHub\TextDiversity\src>python -m textdiversity.text_diversities.phonological
