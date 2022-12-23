@@ -1,12 +1,12 @@
 import numpy as np
 from collections import defaultdict 
 from ..text_diversities import (
-    DocumentSemanticDiversity,
-    AMRDiversity,
-    POSSequenceDiversity,
-    RhythmicDiversity,
-    DependencyDiversity,
-    ConstituencyDiversity,
+    DocumentSemantics,
+    AMR,
+    PartOfSpeechSequence,
+    Rhythmic,
+    DependencyParse,
+    ConstituencyParse,
 )
 
 class TextFetch:
@@ -18,12 +18,12 @@ class TextFetch:
         # and see if we have all the data for the given ids
         
         # featurizers
-        self.semantic_featurizer = DocumentSemanticDiversity()
-        self.amr_featurizer = AMRDiversity()
-        self.syntactic_featurizer = DependencyDiversity()
-        self.syntactic_cd_featurizer = ConstituencyDiversity()
-        self.morphological_featurizer = POSSequenceDiversity()
-        self.phonological_featurizer = RhythmicDiversity()
+        self.semantic_featurizer = DocumentSemantics()
+        self.amr_featurizer = AMR()
+        self.syntactic_featurizer = DependencyParse()
+        self.syntactic_cd_featurizer = ConstituencyParse()
+        self.morphological_featurizer = PartOfSpeechSequence()
+        self.phonological_featurizer = Rhythmic()
 
         # pre-computed features
         self.semantic_features = None
