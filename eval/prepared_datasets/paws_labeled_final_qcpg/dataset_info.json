@@ -1,0 +1,23 @@
+{
+  "citation": "@InProceedings{paws2019naacl,\n  title = {{PAWS: Paraphrase Adversaries from Word Scrambling}},\n  author = {Zhang, Yuan and Baldridge, Jason and He, Luheng},\n  booktitle = {Proc. of NAACL},\n  year = {2019}\n}",
+  "description": "PAWS: Paraphrase Adversaries from Word Scrambling\n\nThis dataset contains 108,463 human-labeled and 656k noisily labeled pairs that feature\nthe importance of modeling structure, context, and word order information for the problem\nof paraphrase identification. The dataset has two subsets, one based on Wikipedia and the\nother one based on the Quora Question Pairs (QQP) dataset.\n\nFor further details, see the accompanying paper: PAWS: Paraphrase Adversaries from Word Scrambling\n(https://arxiv.org/abs/1904.01130)\n\nPAWS-QQP is not available due to license of QQP. It must be reconstructed by downloading the original\ndata and then running our scripts to produce the data and attach the labels.\n\nNOTE: There might be some missing or wrong labels in the dataset and we have replaced them with -1.",
+  "features": {
+    "sentence1": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "sentence2": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "label": {
+      "names": [
+        "0",
+        "1"
+      ],
+      "_type": "ClassLabel"
+    }
+  },
+  "homepage": "https://github.com/google-research-datasets/paws",
+  "license": "The dataset may be freely used for any purpose, although acknowledgement of Google LLC (\"Google\") as the data source would be appreciated. The dataset is provided \"AS IS\" without any warranty, express or implied. Google disclaims all liability for any damages, direct or indirect, resulting from the use of the dataset."
+}
