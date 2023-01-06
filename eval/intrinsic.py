@@ -32,12 +32,12 @@ from paraphrasers import (
 )
 
 from textdiversity import (
-    TokenSemanticDiversity,
-    DocumentSemanticDiversity,
-    POSSequenceDiversity,
-    RhythmicDiversity,
-    PhonemicDiversity,
-    DependencyDiversity,
+    TokenSemantics,
+    DocumentSemantics,
+    PartOfSpeechSequence,
+    Rhythmic,
+    Phonemic,
+    DependencyParse,
 )
 
 # aargparse
@@ -62,7 +62,6 @@ parser.add_argument('--save-file', type=str, default='instrinsic_results.csv',
 
 args = parser.parse_args()
 
-
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
 #############################################################
@@ -85,7 +84,6 @@ def distinct_ngrams(corpus, n):
         return score
     else:
         return 0.0
-
 
 class Paraphraser:
     def __init__(self, technique='textdiv', num_outputs=5):
@@ -118,12 +116,12 @@ class Paraphraser:
 
 class DiversityEvaluator:
     def __init__(self):
-        self.tokdiv_fn = TokenSemanticDiversity()
-        self.docdiv_fn = DocumentSemanticDiversity()
-        self.posdiv_fn = POSSequenceDiversity()
-        self.rhydiv_fn = RhythmicDiversity()
-        self.phodiv_fn = PhonemicDiversity()
-        self.depdiv_fn = DependencyDiversity()
+        self.tokdiv_fn = TokenSemantics()
+        self.docdiv_fn = DocumentSemantics()
+        self.posdiv_fn = PartOfSpeechSequence()
+        self.rhydiv_fn = Rhythmic()
+        self.phodiv_fn = Phonemic()
+        self.depdiv_fn = DependencyParse()
 
     def __call__(self, corpus):
 

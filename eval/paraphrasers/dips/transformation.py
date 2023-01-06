@@ -159,7 +159,7 @@ class DiPSParaphraser:
     def __call__(self, text):
         out = self.generate(text)
         # clean out memory
-        del self.model_en_de, self.model_de_en
+        # del self.model_en_de, self.model_de_en
         return out
 
 if __name__ == '__main__':

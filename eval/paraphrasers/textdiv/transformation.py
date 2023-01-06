@@ -95,10 +95,9 @@ class TextDiversityParaphraser:
         return candidates
 
     def __call__(self, text):
-        print('__call__')
         out = self.generate(text)
-        # clean out memory
-        del self.model_en_de, self.model_de_en
+        # # clean out memory
+        # del self.model_en_de, self.model_de_en
         return out
 
 

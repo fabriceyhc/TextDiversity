@@ -26,7 +26,7 @@ class QCPGParaphraser:
         control ={name: max(min(val , self.ranges[name[:3]][1]), self.ranges[name[:3]][0]) for name, val in zip(names, control)}
         control = [f'COND_{name.upper()}_{control[name]}' for name in names]
         assert all(cond in self.pipe.tokenizer.additional_special_tokens for cond in control)
-        text = ' '.join(control) + text if isinstance(text, str) else [' '.join(control) for t in text]
+        text = ' '.join(control) + ' ' + text if isinstance(text, str) else [' '.join(control) for t in text]
         outputs = self.pipe(text, **kwargs)
         outputs = [out['generated_text'] for out in outputs]
         return outputs

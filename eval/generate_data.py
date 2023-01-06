@@ -8,7 +8,8 @@ from paraphrasers import (
     TextDiversityParaphraser,
     DiPSParaphraser,
     SowReapParaphraser,
-    QCPGParaphraser
+    QCPGParaphraser,
+    QCPGPPlusPlusaraphraser
 )
 
 # argparse
@@ -26,7 +27,7 @@ parser.add_argument('--num-outputs', default=3, type=int, metavar='N',
 parser.add_argument('--batch-size', default=10, type=int, metavar='N',
                     help='number of inputs to proccess per iteration')
 parser.add_argument('--techniques', nargs='+', 
-                    default=['dips', 'beam', 'diverse_beam', 'random'], # 'textdiv', 'qcpg', 'sowreap'
+                    default=['beam', 'diverse_beam', 'random', 'qcpg', 'qcpgpp', 'textdiv', 'dips'], #, 'sowreap'],
                     type=str, help='technique used to generate paraphrases')
 # parser.add_argument('--num-train-per-class', nargs='+', default=[10, 200, 2500], type=int, 
 #                     help='number of training examples per class')
@@ -48,12 +49,14 @@ class DatasetAugmenter:
         
         if self.technique == 'textdiv':
             self.transform_fn = TextDiversityParaphraser()
+        elif self.technique == 'qcpgpp':
+            self.transform_fn = QCPGPPlusPlusaraphraser(num_outputs=num_outputs)
         elif self.technique == 'dips':
             self.transform_fn = DiPSParaphraser(augmenter='dips')
         elif self.technique == 'sowreap':
             self.transform_fn = SowReapParaphraser()
         elif self.technique == 'qcpg':
-            self.transform_fn = QCPGParaphraser()
+            self.transform_fn = QCPGParaphraser(num_outputs=num_outputs)
         elif self.technique == 'beam':
             self.transform_fn = DiPSParaphraser(augmenter='beam')
         elif self.technique == 'diverse_beam':

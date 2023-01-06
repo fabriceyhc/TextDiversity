@@ -15,13 +15,13 @@ from .submodular_funcs import (
 
 from textdiversity import (
     # similarities
-    TokenSemanticDiversity,
-    DocumentSemanticDiversity,
+    TokenSemantics,
+    DocumentSemantics,
     # diversities
-    POSSequenceDiversity,
-    RhythmicDiversity,
-    PhonemicDiversity,
-    DependencyDiversity,
+    PartOfSpeechSequence,
+    Rhythmic,
+    Phonemic,
+    DependencyParse,
 )
 
 
@@ -46,14 +46,14 @@ class SubmodularOpt:
         self.V = V
 
         # similarity functions
-        self.toksim_fn = TokenSemanticDiversity()
-        self.docsim_fn = DocumentSemanticDiversity()
+        self.toksim_fn = TokenSemantics()
+        self.docsim_fn = DocumentSemantics()
 
         # diversity functions
-        self.posdiv_fn = POSSequenceDiversity()
-        self.rhydiv_fn = RhythmicDiversity()
-        self.phodiv_fn = PhonemicDiversity()
-        self.depdiv_fn = DependencyDiversity()
+        self.posdiv_fn = PartOfSpeechSequence()
+        self.rhydiv_fn = Rhythmic()
+        self.phodiv_fn = Phonemic()
+        self.depdiv_fn = DependencyParse()
 
         # print('self.toksim_fn.device', self.toksim_fn.device)
         # print('self.docsim_fn.device', self.docsim_fn.device)
