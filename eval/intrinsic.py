@@ -28,7 +28,8 @@ from paraphrasers import (
     TextDiversityParaphraser,
     DiPSParaphraser,
     SowReapParaphraser,
-    QCPGParaphraser
+    QCPGParaphraser,
+    QCPGPPlusPlusaraphraser
 )
 
 from textdiversity import (
@@ -47,11 +48,11 @@ parser = argparse.ArgumentParser(description='TextDiversity Trainer')
 parser.add_argument('--data-dir', type=str, default="./prepared_datasets/",
                     help='path to data folders')
 parser.add_argument('--num-runs', default=1, type=int, metavar='N',
-                    help='number of times to repeat the training')
+                    help='number of times to repeat the evaluation')
 parser.add_argument('--num-eval', default=5, type=int, metavar='N',
                     help='number of samples to draw from the dataset for evaluation')
 parser.add_argument('--techniques', nargs='+', 
-                    default=['orig', 'dips', 'beam', 'diverse_beam', 'random','textdiv'], # , 'qcpg', 'sowreap'
+                    default=['orig', 'beam', 'diverse_beam', 'random', 'qcpg', 'qcpgpp', 'textdiv', 'dips'], # 'sowreap'
                     type=str, help='technique used to generate paraphrases')
 parser.add_argument('--dataset-config', nargs='+', default=['paws', 'labeled_final'],
                     type=str, help='dataset info needed for load_dataset.')
@@ -59,10 +60,13 @@ parser.add_argument('--dataset-keys', nargs='+', default=['sentence1', 'sentence
                     type=str, help='dataset info needed for load_dataset.')
 parser.add_argument('--save-file', type=str, default='instrinsic_results.csv',
                     help='name for the csv file to save with results')
+parser.add_argument('--use-cuda', default=False, action='store_true',
+                    help='whether or not to use cuda')
 
 args = parser.parse_args()
 
-device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+device = torch.device('cuda') if torch.cuda.is_available() and args.use_cuda else torch.device('cpu')
+print(f"device = {device}")
 
 #############################################################
 ## Helpers ##################################################
@@ -86,25 +90,27 @@ def distinct_ngrams(corpus, n):
         return 0.0
 
 class Paraphraser:
-    def __init__(self, technique='textdiv', num_outputs=5):
+    def __init__(self, technique='textdiv', num_outputs=5, use_cuda=True):
         self.technique = technique
         
         if self.technique == 'orig':
             self.transform_fn = lambda x: [x] * num_outputs
-        elif self.technique == 'textdiv':
-            self.transform_fn = TextDiversityParaphraser()
+        elif self.technique == 'random':
+            self.transform_fn = DiPSParaphraser(use_cuda=use_cuda, augmenter='random')
+        elif self.technique == 'beam':
+            self.transform_fn = DiPSParaphraser(use_cuda=use_cuda, augmenter='beam')
+        elif self.technique == 'diverse_beam':
+            self.transform_fn = DiPSParaphraser(use_cuda=use_cuda, augmenter='diverse_beam')
         elif self.technique == 'dips':
-            self.transform_fn = DiPSParaphraser(augmenter='dips')
+            self.transform_fn = DiPSParaphraser(use_cuda=use_cuda, augmenter='dips')
+        elif self.technique == 'textdiv':
+            self.transform_fn = TextDiversityParaphraser(use_cuda=use_cuda)
+        elif self.technique == 'qcpgpp':
+            self.transform_fn = QCPGPPlusPlusaraphraser(use_cuda=use_cuda, num_outputs=num_outputs)
+        elif self.technique == 'qcpg':
+            self.transform_fn = QCPGParaphraser(use_cuda=use_cuda, num_outputs=num_outputs)
         elif self.technique == 'sowreap':
             self.transform_fn = SowReapParaphraser()
-        elif self.technique == 'qcpg':
-            self.transform_fn = QCPGParaphraser()
-        elif self.technique == 'beam':
-            self.transform_fn = DiPSParaphraser(augmenter='beam')
-        elif self.technique == 'diverse_beam':
-            self.transform_fn = DiPSParaphraser(augmenter='diverse_beam')
-        elif self.technique == 'random':
-            self.transform_fn = DiPSParaphraser(augmenter='random')
         else:
             raise ValueError("must provide a valid paraphrase generation technique.")
         
@@ -116,12 +122,12 @@ class Paraphraser:
 
 class DiversityEvaluator:
     def __init__(self):
-        self.tokdiv_fn = TokenSemantics()
-        self.docdiv_fn = DocumentSemantics()
-        self.posdiv_fn = PartOfSpeechSequence()
-        self.rhydiv_fn = Rhythmic()
-        self.phodiv_fn = Phonemic()
-        self.depdiv_fn = DependencyParse()
+        self.tokdiv_fn = TokenSemantics({'use_cuda':args.use_cuda})
+        self.docdiv_fn = DocumentSemantics({'use_cuda':args.use_cuda})
+        self.posdiv_fn = PartOfSpeechSequence({'use_cuda':args.use_cuda})
+        self.rhydiv_fn = Rhythmic({'use_cuda':args.use_cuda})
+        self.phodiv_fn = Phonemic({'use_cuda':args.use_cuda})
+        self.depdiv_fn = DependencyParse({'use_cuda':args.use_cuda})
 
     def __call__(self, corpus):
 
@@ -192,14 +198,14 @@ for run_num in range(args.num_runs):
     else:
         # if not 1 then assume 2 keys
         sentence1_key, sentence2_key = args.dataset_keys
-        text_to_paraphrase = row_to_paraphrase[sentence1_key] + row_to_paraphrase[sentence2_key]
+        text_to_paraphrase = row_to_paraphrase[sentence1_key] + ' ' + row_to_paraphrase[sentence2_key]
 
     for technique in args.techniques:
 
         print(f'run_num: {run_num}, technique: {technique}')
 
         # paraphrase as we go 
-        paraphraser = Paraphraser(technique=technique, num_outputs=args.num_eval)
+        paraphraser = Paraphraser(technique=technique, num_outputs=args.num_eval, use_cuda=args.use_cuda)
 
         #############################################################
         ## Intrinsic Evaluation #####################################
@@ -211,7 +217,7 @@ for run_num in range(args.num_runs):
         print('paraphrases:', paraphrases)
         div_eval_results = div_evaluator(paraphrases)
         fid_eval_results = fid_evaluator(paraphrases, [text_to_paraphrase] * args.num_eval)
-        out = div_eval_results | fid_eval_results
+        out = {**div_eval_results, **fid_eval_results}
         run_time = time.time() - start_time
 
         out['text_to_paraphrase'] = text_to_paraphrase

@@ -6,8 +6,8 @@ import torch
 # GENERATION APPROACHES 
 
 class QCPGPPlusPlusaraphraser:
-    def __init__(self, num_outputs=1, sample_controls_from_ranges=True):
-        self.device = 0 if torch.cuda.is_available() else -1
+    def __init__(self, num_outputs=1, use_cuda=True, sample_controls_from_ranges=True):
+        self.device = 0 if use_cuda and torch.cuda.is_available() else -1
         self.pipe = pipeline('text2text-generation', 
                              model='madhavsankar/qcpg-parabk2-sbert-lr1e-4',
                              do_sample=True,
@@ -18,10 +18,10 @@ class QCPGPPlusPlusaraphraser:
         self.control_options = find_control_options(self.pipe.tokenizer)
         self.control_ranges = {
             "semantic_sim": (0.8, 0.9),
-            "syntactic_div": (0.1, 0.7),
-            "morphological_div": (0.1, 0.7),
-            "phonological_div": (0.1, 0.7),
-            "lexical_div": (0.1, 0.7),
+            "syntactic_div": (0.7, 0.9),
+            "morphological_div": (0.7, 0.9),
+            "phonological_div": (0.7, 0.9),
+            "lexical_div": (0.7, 0.7),
         }
 
     def __call__(self, text, semantic=0.8, syntactic=0.5, morphologic=0.5, phonologic=0.5, lexical=0.5, **kwargs):

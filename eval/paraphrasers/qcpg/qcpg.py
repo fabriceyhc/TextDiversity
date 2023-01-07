@@ -4,9 +4,9 @@ from transformers import pipeline
 # GENERATION APPROACHES 
 
 class QCPGParaphraser:
-    def __init__(self, type='sentences', num_outputs=5):
+    def __init__(self, type='sentences', use_cuda=True, num_outputs=5):
         assert type in ['captions', 'questions', 'sentences']
-        self.device = 0 if torch.cuda.is_available() else -1
+        self.device = 0 if use_cuda and torch.cuda.is_available() else -1
         self.pipe = pipeline('text2text-generation', 
                              model=f'ibm/qcpg-{type}',
                              do_sample=True,

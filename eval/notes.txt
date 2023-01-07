@@ -1,5 +1,21 @@
 # notes
 
+## setup virtual environment (conda)
+
+### for core functionality
+conda create -n textdiv python=3.8
+(textdiv) C:\Users\sleev\Documents\GitHub\TextDiversity> 
+pip install -r requirements.txt
+pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu117
+python -m spacy download en_core_web_sm
+
+### for evalatuion code
+(textdiv) C:\Users\sleev\Documents\GitHub\TextDiversity\eval> pip install -r requirements.txt
+
+#### troubleshooting
+ModuleNotFoundError: No module named 'huggingface_hub.snapshot_download'
+pip install huggingface-hub==0.10.1
+
 ## tmux
 
 ### create new session

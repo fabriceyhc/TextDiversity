@@ -10,11 +10,11 @@ from .submod.submodular_funcs import trigger_dips
 
 class DiPSParaphraser:
 
-    def __init__(self, augmenter="dips", num_outputs=3, seed=42, verbose=False):
+    def __init__(self, augmenter="dips", num_outputs=3, seed=42, use_cuda=True, verbose=False):
         self.augmenter = augmenter
         self.num_outputs = num_outputs
         self.verbose = verbose
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda' if use_cuda and torch.cuda.is_available() else 'cpu')
 
         random.seed(seed)
         np.random.seed(seed)
