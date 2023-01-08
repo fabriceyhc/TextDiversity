@@ -1,7 +1,9 @@
 ,eval_loss,eval_accuracy,eval_runtime,eval_samples_per_second,eval_steps_per_second,epoch,run_name,model_name,run_num,technique,dataset_config,run_time
-0,0.1777966320514679,0.9375,0.0318,503.643,31.478,6.81,./pretrained/roberta-base-snips_built_in_intents_orig,roberta-base,0,orig,['snips_built_in_intents'],49.55962824821472
-1,0.0017162095755338669,1.0,0.158,417.806,31.652,6.95,./pretrained/roberta-base-snips_built_in_intents_textdiv,roberta-base,0,textdiv,['snips_built_in_intents'],142.33400011062622
-2,0.0018456571269780397,1.0,0.183,360.693,27.325,6.95,./pretrained/roberta-base-snips_built_in_intents_dips,roberta-base,0,dips,['snips_built_in_intents'],147.49981474876404
-3,0.0017162095755338669,1.0,0.2167,304.589,23.075,6.95,./pretrained/roberta-base-snips_built_in_intents_beam,roberta-base,0,beam,['snips_built_in_intents'],150.80934524536133
-4,0.001766349421814084,1.0,0.252,261.926,19.843,6.95,./pretrained/roberta-base-snips_built_in_intents_diverse_beam,roberta-base,0,diverse_beam,['snips_built_in_intents'],153.18086004257202
-5,0.0008884526323527098,1.0,0.1862,354.441,26.852,7.95,./pretrained/roberta-base-snips_built_in_intents_random,roberta-base,0,random,['snips_built_in_intents'],174.47337818145752
+0,0.20601233839988708,0.9375,0.061,262.381,16.399,8.76,./pretrained/roberta-base-snips_built_in_intents_orig,roberta-base,0,orig,['snips_built_in_intents'],60.081411600112915
+1,0.014423312619328499,0.9848484848484849,0.2656,248.47,18.823,7.95,./pretrained/roberta-base-snips_built_in_intents_dips,roberta-base,0,dips,['snips_built_in_intents'],165.0356206893921
+2,0.004619206301867962,1.0,0.2969,222.331,16.843,6.95,./pretrained/roberta-base-snips_built_in_intents_beam,roberta-base,0,beam,['snips_built_in_intents'],152.17614436149597
+3,0.0016681227134540677,1.0,0.2807,235.097,17.81,6.95,./pretrained/roberta-base-snips_built_in_intents_diverse_beam,roberta-base,0,diverse_beam,['snips_built_in_intents'],155.27512049674988
+4,0.000913596770260483,1.0,0.2913,226.584,17.165,7.95,./pretrained/roberta-base-snips_built_in_intents_random,roberta-base,0,random,['snips_built_in_intents'],181.55203104019165
+5,0.004619206301867962,1.0,0.3134,210.588,15.954,6.95,./pretrained/roberta-base-snips_built_in_intents_textdiv,roberta-base,0,textdiv,['snips_built_in_intents'],157.86675643920898
+6,0.0010371297830715775,1.0,0.2731,241.631,18.305,8.94,./pretrained/roberta-base-snips_built_in_intents_qcpg,roberta-base,0,qcpg,['snips_built_in_intents'],201.44059371948242
+7,0.2537078857421875,0.9696969696969697,0.2726,242.074,18.339,9.93,./pretrained/roberta-base-snips_built_in_intents_qcpgpp,roberta-base,0,qcpgpp,['snips_built_in_intents'],224.73760628700256

@@ -38,7 +38,8 @@ watch -n 1 nvidia-smi
 
 ### single input datasets
 python generate_data.py --dataset-config snips_built_in_intents --dataset-keys text
-python generate_data.py --dataset-config banking77 --dataset-keys text --techniques textdiv
+python generate_data.py --dataset-config banking77 --dataset-keys text 
+python generate_data.py --dataset-config tweet_eval emotion --dataset-keys text 
 
 ### two input datasets
 python generate_data.py --dataset-config paws labeled_final

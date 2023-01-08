@@ -1,0 +1,21 @@
+{
+  "citation": "@inproceedings{barbieri2020tweeteval,\n  title={{TweetEval:Unified Benchmark and Comparative Evaluation for Tweet Classification}},\n  author={Barbieri, Francesco and Camacho-Collados, Jose and Espinosa-Anke, Luis and Neves, Leonardo},\n  booktitle={Proceedings of Findings of EMNLP},\n  year={2020}\n}",
+  "description": "TweetEval consists of seven heterogenous tasks in Twitter, all framed as multi-class tweet classification. All tasks have been unified into the same benchmark, with each dataset presented in the same format and with fixed training, validation and test splits.",
+  "features": {
+    "text": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "label": {
+      "names": [
+        "anger",
+        "joy",
+        "optimism",
+        "sadness"
+      ],
+      "_type": "ClassLabel"
+    }
+  },
+  "homepage": "https://github.com/cardiffnlp/tweeteval",
+  "license": ""
+}
