@@ -187,10 +187,10 @@ fid_evaluator = FidelityEvaluator()
 if 'trec' in args.dataset_config:
     train_dataset = load_dataset(args.dataset_config[0], split='train') 
     if 'coarse_label' in args.dataset_config:
-        train_dataset = train_dataset['train'].remove_columns("fine_label")
+        train_dataset = train_dataset.remove_columns("fine_label")
         train_dataset = train_dataset.rename_column("coarse_label", "label")
     elif 'fine_label' in args.dataset_config:
-        train_dataset = train_dataset['train'].remove_columns("coarse_label")
+        train_dataset = train_dataset.remove_columns("coarse_label")
         train_dataset = train_dataset.rename_column("fine_label", "label")
 else:
     train_dataset = load_dataset(*args.dataset_config, split='train') 

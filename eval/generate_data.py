@@ -91,10 +91,10 @@ class DatasetAugmenter:
 if 'trec' in args.dataset_config:
     dataset = load_dataset(args.dataset_config[0], split='train') 
     if 'coarse_label' in args.dataset_config:
-        dataset = dataset['train'].remove_columns("fine_label")
+        dataset = dataset.remove_columns("fine_label")
         dataset = dataset.rename_column("coarse_label", "label")
     elif 'fine_label' in args.dataset_config:
-        dataset = dataset['train'].remove_columns("coarse_label")
+        dataset = dataset.remove_columns("coarse_label")
         dataset = dataset.rename_column("fine_label", "label")
 else:
     dataset = load_dataset(*args.dataset_config, split='train') 
