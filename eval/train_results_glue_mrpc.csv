@@ -1,6 +1,15 @@
 ,eval_loss,eval_accuracy,eval_runtime,eval_samples_per_second,eval_steps_per_second,epoch,run_name,model_name,run_num,technique,dataset_config,run_time
-0,0.6769587397575378,0.8515942028985507,1.5714,1097.771,68.73,9.98,./pretrained/roberta-base-glue_mrpc_orig,roberta-base,0,orig,"['glue', 'mrpc']",324.5837779045105
-1,0.811941921710968,0.8533333333333334,1.9358,891.107,55.791,7.0,./pretrained/roberta-base-glue_mrpc_dips,roberta-base,0,dips,"['glue', 'mrpc']",908.955372095108
-2,1.08817458152771,0.8585507246376811,2.0475,842.505,52.748,10.0,./pretrained/roberta-base-glue_mrpc_beam,roberta-base,0,beam,"['glue', 'mrpc']",1318.7225890159607
-3,1.193313479423523,0.8434782608695652,2.0182,854.724,53.513,10.0,./pretrained/roberta-base-glue_mrpc_diverse_beam,roberta-base,0,diverse_beam,"['glue', 'mrpc']",1616.7545108795166
-4,1.103527545928955,0.8504347826086956,2.0245,852.054,53.346,10.0,./pretrained/roberta-base-glue_mrpc_random,roberta-base,0,random,"['glue', 'mrpc']",1576.5915474891663
+0,0.9100260138511658,0.8585507246376811,11.8033,146.146,9.15,9.99,./pretrained/roberta-base-glue_mrpc_orig,roberta-base,0,orig,"['glue', 'mrpc']",1060.1871960163116
+1,0.8406044840812683,0.832463768115942,11.9296,144.598,9.053,10.0,./pretrained/roberta-base-glue_mrpc_beam,roberta-base,0,beam,"['glue', 'mrpc']",4305.692062139511
+2,1.083991527557373,0.8568115942028985,11.8928,145.045,9.081,10.0,./pretrained/roberta-base-glue_mrpc_diverse_beam,roberta-base,0,diverse_beam,"['glue', 'mrpc']",4326.917987823486
+3,1.4409940242767334,0.8498550724637681,11.8977,144.987,9.077,10.0,./pretrained/roberta-base-glue_mrpc_random,roberta-base,0,random,"['glue', 'mrpc']",4324.140320777893
+4,0.6347388625144958,0.688695652173913,12.0375,143.302,8.972,6.0,./pretrained/roberta-base-glue_mrpc_qcpg,roberta-base,0,qcpg,"['glue', 'mrpc']",2589.4869961738586
+5,0.6252305507659912,0.711304347826087,11.8018,146.164,9.151,6.0,./pretrained/roberta-base-glue_mrpc_qcpgpp,roberta-base,0,qcpgpp,"['glue', 'mrpc']",2603.1040008068085
+6,1.1380279064178467,0.8568115942028985,11.8139,146.015,9.142,10.0,./pretrained/roberta-base-glue_mrpc_textdiv,roberta-base,0,textdiv,"['glue', 'mrpc']",4351.6034553050995
+7,1.121322512626648,0.8527536231884058,11.9332,144.554,9.05,10.0,./pretrained/roberta-base-glue_mrpc_dips,roberta-base,0,dips,"['glue', 'mrpc']",4360.995859384537
+8,0.7695309519767761,0.8521739130434782,11.7937,146.264,9.157,9.99,./pretrained/roberta-base-glue_mrpc_orig,roberta-base,1,orig,"['glue', 'mrpc']",1124.828132390976
+9,0.8097301125526428,0.8573913043478261,11.8731,145.287,9.096,8.0,./pretrained/roberta-base-glue_mrpc_beam,roberta-base,1,beam,"['glue', 'mrpc']",3489.7990820407867
+10,0.8264017105102539,0.8359420289855073,11.8345,145.761,9.126,7.0,./pretrained/roberta-base-glue_mrpc_diverse_beam,roberta-base,1,diverse_beam,"['glue', 'mrpc']",3045.991032600403
+11,1.3200814723968506,0.8614492753623189,11.789,146.323,9.161,10.0,./pretrained/roberta-base-glue_mrpc_random,roberta-base,1,random,"['glue', 'mrpc']",4362.477557182312
+12,0.9347851276397705,0.7727536231884058,11.7689,146.573,9.177,10.0,./pretrained/roberta-base-glue_mrpc_qcpg,roberta-base,1,qcpg,"['glue', 'mrpc']",4353.373846769333
+13,1.2686984539031982,0.7785507246376812,11.8666,145.366,9.101,10.0,./pretrained/roberta-base-glue_mrpc_qcpgpp,roberta-base,1,qcpgpp,"['glue', 'mrpc']",4357.707845926285

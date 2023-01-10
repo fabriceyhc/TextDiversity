@@ -43,7 +43,7 @@ parser.add_argument('--gpus', default='0,1,2,3', type=str,
 parser.add_argument('--num_runs', default=3, type=int, metavar='N',
                     help='number of times to repeat the training')
 parser.add_argument('--techniques', nargs='+', 
-                    default=['orig', 'beam', 'diverse_beam', 'random', 'qcpg', 'qcpgpp', 'textdiv', 'dips'],
+                    default=['orig', 'beam', 'diverse_beam', 'random', 'qcpg', 'qcpgpp', 'textdiv', 'dips'], #  'textdiv', 'qcpg', 'sowreap'
                     type=str, help='technique used to generate paraphrases')
 parser.add_argument('--dataset-config', nargs='+', default=['paws', 'labeled_final'],
                     type=str, help='dataset info needed for load_dataset.')
@@ -55,9 +55,10 @@ parser.add_argument('--save-file', type=str, default='train_results.csv',
                     help='name for the csv file to save with results')
 
 args = parser.parse_args()
-
+print(args)
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+print(f"device={device}")
 
 #############################################################
 ## Helper Functions #########################################
@@ -128,30 +129,32 @@ for run_arg in run_args[start_position:]:
     else:
         save_name = "_".join(args.dataset_config) + "_" + technique
         save_path = os.path.join(args.data_dir, save_name)
-        train_dataset = load_from_disk(save_path).shuffle()
+        train_dataset = load_from_disk(save_path)
 
     if "snips_built_in_intents" in args.dataset_config:
         # special handling since snips has no val / test split
         train_testvalid = train_dataset.train_test_split(test_size=0.1)
-        test_valid = train_testvalid['test'].train_test_split(test_size=0.5)
+        test_valid    = train_testvalid['test'].train_test_split(test_size=0.5)
         train_dataset = train_testvalid['train'].shuffle()
         eval_dataset  = test_valid['test']
         test_dataset  = test_valid['train']
     elif 'sst2' in args.dataset_config:
         # special handling since sst2 has no test labels
         eval_dataset  = load_dataset(*args.dataset_config, split='validation')
-        test_valid = eval_dataset.train_test_split(test_size=0.5)
+        test_valid    = eval_dataset.train_test_split(test_size=0.5)
         eval_dataset  = test_valid['test']
         test_dataset  = test_valid['train']
     elif 'banking77' in args.dataset_config:
         # special handling since banking77 has no validation split
         test_dataset  = load_dataset(*args.dataset_config, split='test')
-        test_valid = test_dataset.train_test_split(test_size=0.5)
+        test_valid    = test_dataset.train_test_split(test_size=0.5)
         eval_dataset  = test_valid['test']
         test_dataset  = test_valid['train']
     else:
         eval_dataset  = load_dataset(*args.dataset_config, split='validation')
         test_dataset  = load_dataset(*args.dataset_config, split='test')
+
+    train_dataset = train_dataset.shuffle(seed=run_num)
 
     num_classes = train_dataset.features['label'].num_classes
 
