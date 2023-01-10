@@ -40,6 +40,9 @@ watch -n 1 nvidia-smi
 python generate_data.py --dataset-config snips_built_in_intents --dataset-keys text
 python generate_data.py --dataset-config banking77 --dataset-keys text 
 python generate_data.py --dataset-config tweet_eval emotion --dataset-keys text 
+python generate_data.py --dataset-config trec coarse_label --dataset-keys text 
+python generate_data.py --dataset-config trec fine_label --dataset-keys text 
+
 
 ### two input datasets
 python generate_data.py --dataset-config paws labeled_final
@@ -51,8 +54,12 @@ python train.py --dataset-config snips_built_in_intents --dataset-keys text --gp
 python train.py --dataset-config banking77 --dataset-keys text --gpus 0 --save-file train_results_banking77.csv
 python train.py --dataset-config tweet_eval emotion --dataset-keys text --gpus 0 --save-file train_results_tweet_eval_emotion.csv
 python train.py --dataset-config glue mrpc --gpus 0 --save-file train_results_glue_mrpc.csv
+python train.py --dataset-config trec coarse_label --gpus 0 --save-file train_results_trec_coarse_label.csv
+python train.py --dataset-config trec fine_label --gpus 0 --save-file train_results_trec_fine_label.csv
 
 ## intrinsic.py cmds
 python intrinsic.py --dataset-config snips_built_in_intents --dataset-keys text --num-runs 100 --save-file intrinsic_results_snips_built_in_intents.csv
 python intrinsic.py --dataset-config banking77 --dataset-keys text --num-runs 100 --save-file intrinsic_results_banking77.csv
 python intrinsic.py --dataset-config tweet_eval emotion --dataset-keys text --num-runs 100 --save-file intrinsic_results_tweet_eval_emotion.csv
+python intrinsic.py --dataset-config trec coarse_label --dataset-keys text --num-runs 100 --save-file intrinsic_results_trec_coarse_label.csv
+python intrinsic.py --dataset-config trec fine_label --dataset-keys text --num-runs 100 --save-file intrinsic_results_trec_fine_label.csv

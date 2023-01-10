@@ -150,6 +150,18 @@ for run_arg in run_args[start_position:]:
         test_valid    = test_dataset.train_test_split(test_size=0.5)
         eval_dataset  = test_valid['test']
         test_dataset  = test_valid['train']
+    elif 'trec' in args.dataset_config:
+        # special handling since trec has different label granularities
+        test_dataset = load_dataset(args.dataset_config[0], split='test') 
+        if 'coarse_label' in args.dataset_config:
+            test_dataset = test_dataset['train'].remove_columns("fine_label")
+            test_dataset = test_dataset.rename_column("coarse_label", "label")
+        elif 'fine_label' in args.dataset_config:
+            test_dataset = test_dataset['train'].remove_columns("coarse_label")
+            test_dataset = test_dataset.rename_column("fine_label", "label")
+        test_valid    = test_dataset.train_test_split(test_size=0.5)
+        eval_dataset  = test_valid['test']
+        test_dataset  = test_valid['train']
     else:
         eval_dataset  = load_dataset(*args.dataset_config, split='validation')
         test_dataset  = load_dataset(*args.dataset_config, split='test')

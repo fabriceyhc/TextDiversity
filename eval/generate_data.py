@@ -29,10 +29,6 @@ parser.add_argument('--batch-size', default=10, type=int, metavar='N',
 parser.add_argument('--techniques', nargs='+', 
                     default=['beam', 'diverse_beam', 'random', 'qcpg', 'qcpgpp', 'textdiv', 'dips'], #, 'sowreap'],
                     type=str, help='technique used to generate paraphrases')
-# parser.add_argument('--num-train-per-class', nargs='+', default=[10, 200, 2500], type=int, 
-#                     help='number of training examples per class')
-# parser.add_argument('--num-valid-per-class', default=2000, type=int, metavar='N',
-#                     help='number of validation examples per class')
 parser.add_argument('--keep-original', default=True, action='store_true',
                     help='preserve original dataset in the updated one')
 parser.add_argument('--force', default=False, action='store_true',
@@ -91,21 +87,24 @@ class DatasetAugmenter:
         else:
             raise ValueError("Unsupported number of dataset-keys. Should be either 1 or 2.")
 
-
 # load dataset and process
-dataset = load_dataset(*args.dataset_config, split='train') 
-# ugly way of standardizing dataset column names
-try:
-    # for glue.qqp
+if 'trec' in args.dataset_config:
+    dataset = load_dataset(args.dataset_config[0], split='train') 
+    if 'coarse_label' in args.dataset_config:
+        dataset = dataset['train'].remove_columns("fine_label")
+        dataset = dataset.rename_column("coarse_label", "label")
+    elif 'fine_label' in args.dataset_config:
+        dataset = dataset['train'].remove_columns("coarse_label")
+        dataset = dataset.rename_column("fine_label", "label")
+else:
+    dataset = load_dataset(*args.dataset_config, split='train') 
+
+# standardizing dataset column names
+if 'qqp' in args.dataset_config:
     dataset = dataset.rename_column("question1", "sentence1")
     dataset = dataset.rename_column("question2", "sentence2")
-except:
-    pass
-try:
-    # for glue.sst2
+if 'sst2' in args.dataset_config:
     dataset = dataset.rename_column("sentence", "text")
-except:
-    pass
 
 key_columns = ['text', 'sentence1', 'sentence2', 'label']
 columns_to_remove = [c for c in dataset.column_names if c not in key_columns]
