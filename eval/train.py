@@ -49,7 +49,7 @@ parser.add_argument('--dataset-config', nargs='+', default=['paws', 'labeled_fin
                     type=str, help='dataset info needed for load_dataset.')
 parser.add_argument('--dataset-keys', nargs='+', default=['sentence1', 'sentence2'],
                     type=str, help='dataset info needed for load_dataset.')
-parser.add_argument('--models', nargs='+',  default=['roberta-base'], 
+parser.add_argument('--models', nargs='+',  default=['distilbert-base-uncased'], 
                     type=str, help='pretrained huggingface models to train')
 parser.add_argument('--save-file', type=str, default='train_results.csv',
                     help='name for the csv file to save with results')

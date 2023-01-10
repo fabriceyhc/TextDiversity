@@ -63,3 +63,6 @@ python intrinsic.py --dataset-config banking77 --dataset-keys text --num-runs 10
 python intrinsic.py --dataset-config tweet_eval emotion --dataset-keys text --num-runs 100 --save-file intrinsic_results_tweet_eval_emotion.csv
 python intrinsic.py --dataset-config trec coarse_label --dataset-keys text --num-runs 100 --save-file intrinsic_results_trec_coarse_label.csv
 python intrinsic.py --dataset-config trec fine_label --dataset-keys text --num-runs 100 --save-file intrinsic_results_trec_fine_label.csv
+
+
+python train.py --dataset-config snips_built_in_intents --dataset-keys text --gpus 0 --save-file train_results_snips_built_in_intents_distilbert.csv
