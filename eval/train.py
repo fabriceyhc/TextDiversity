@@ -40,10 +40,10 @@ parser.add_argument('--gpus', default='0,1,2,3', type=str,
 #                     help='location for for TRANSFORMERS_CACHE')
 # parser.add_argument('--datasets_cache', default="../../data1/fabricehc/.cache", type=str,
 #                     help='location for for HF_DATASETS_CACHE')
-parser.add_argument('--num_runs', default=1, type=int, metavar='N',
+parser.add_argument('--num_runs', default=3, type=int, metavar='N',
                     help='number of times to repeat the training')
 parser.add_argument('--techniques', nargs='+', 
-                    default=['orig', 'dips', 'beam', 'diverse_beam', 'random'], #  'textdiv', 'qcpg', 'sowreap'
+                    default=['orig', 'beam', 'diverse_beam', 'random', 'qcpg', 'qcpgpp', 'textdiv', 'dips'],
                     type=str, help='technique used to generate paraphrases')
 parser.add_argument('--dataset-config', nargs='+', default=['paws', 'labeled_final'],
                     type=str, help='dataset info needed for load_dataset.')
