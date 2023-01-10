@@ -154,11 +154,11 @@ for run_arg in run_args[start_position:]:
         # special handling since trec has different label granularities
         test_dataset = load_dataset(args.dataset_config[0], split='test') 
         if 'coarse_label' in args.dataset_config:
-            test_dataset = test_dataset['train'].remove_columns("fine_label")
-            test_dataset = test_dataset.rename_column("coarse_label", "label")
+            test_dataset = test_dataset.remove_columns("label-fine")
+            test_dataset = test_dataset.rename_column("label-coarse", "label")
         elif 'fine_label' in args.dataset_config:
-            test_dataset = test_dataset['train'].remove_columns("coarse_label")
-            test_dataset = test_dataset.rename_column("fine_label", "label")
+            test_dataset = test_dataset.remove_columns("label-coarse")
+            test_dataset = test_dataset.rename_column("label-fine", "label")
         test_valid    = test_dataset.train_test_split(test_size=0.5)
         eval_dataset  = test_valid['test']
         test_dataset  = test_valid['train']
