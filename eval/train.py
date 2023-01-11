@@ -3,7 +3,6 @@ from transformers import (
     AutoTokenizer, 
     Trainer, 
     TrainingArguments, 
-    TrainerCallback, 
     EarlyStoppingCallback
 )
 
@@ -11,14 +10,12 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 from transformers.trainer_callback import TrainerControl
 from datasets import load_dataset, load_metric, load_from_disk
 import os
-import sys
 import argparse
 import time
-import random
-import shutil
 import torch
 import pandas as pd
-from torch.utils.data import DataLoader
+
+from utils import CleanLabFilter
 
 # aargparse
 
@@ -36,10 +33,6 @@ parser.add_argument('--eval-batch-size', default=16, type=int, metavar='N',
                     help='eval batchsize')
 parser.add_argument('--gpus', default='0,1,2,3', type=str,
                     help='id(s) for CUDA_VISIBLE_DEVICES')
-# parser.add_argument('--transformers_cache', default="../../data1/fabricehc/.cache", type=str,
-#                     help='location for for TRANSFORMERS_CACHE')
-# parser.add_argument('--datasets_cache', default="../../data1/fabricehc/.cache", type=str,
-#                     help='location for for HF_DATASETS_CACHE')
 parser.add_argument('--num_runs', default=3, type=int, metavar='N',
                     help='number of times to repeat the training')
 parser.add_argument('--techniques', nargs='+', 
@@ -49,6 +42,8 @@ parser.add_argument('--dataset-config', nargs='+', default=['paws', 'labeled_fin
                     type=str, help='dataset info needed for load_dataset.')
 parser.add_argument('--dataset-keys', nargs='+', default=['sentence1', 'sentence2'],
                     type=str, help='dataset info needed for load_dataset.')
+parser.add_argument('--cleanlab-filter', default=True, action='store_true',
+                    help='filter out inputs with potential label errors')
 parser.add_argument('--models', nargs='+',  default=['distilbert-base-uncased'], 
                     type=str, help='pretrained huggingface models to train')
 parser.add_argument('--save-file', type=str, default='train_results.csv',
@@ -71,12 +66,8 @@ def tokenize_fn(batch):
 
 def compute_metrics(eval_pred):
     predictions, labels = eval_pred
-    if len(labels.shape) > 1: 
-        acc = acc_at_k(labels, predictions, k=2)
-        return { 'accuracy': acc }        
-    else:
-        acc = accuracy_score(labels, predictions.argmax(-1))
-        return { 'accuracy': acc } 
+    acc = accuracy_score(labels, predictions.argmax(-1))
+    return { 'accuracy': acc } 
 
 #############################################################
 ## Main Loop Functionality ##################################
@@ -124,6 +115,8 @@ for run_arg in run_args[start_position:]:
     ## Dataset Preparation ######################################
     #############################################################
 
+    dataset_name = args.dataset_config[0]
+
     if technique == "orig":
         train_dataset = load_dataset(*args.dataset_config, split='train').shuffle()
     else:
@@ -139,6 +132,7 @@ for run_arg in run_args[start_position:]:
         eval_dataset  = test_valid['test']
         test_dataset  = test_valid['train']
     elif 'sst2' in args.dataset_config:
+        dataset_name = args.dataset_config[1]
         # special handling since sst2 has no test labels
         eval_dataset  = load_dataset(*args.dataset_config, split='validation')
         test_valid    = eval_dataset.train_test_split(test_size=0.5)
@@ -166,8 +160,14 @@ for run_arg in run_args[start_position:]:
         eval_dataset  = load_dataset(*args.dataset_config, split='validation')
         test_dataset  = load_dataset(*args.dataset_config, split='test')
 
-    train_dataset = train_dataset.shuffle(seed=run_num)
+    if args.cleanlab_filter:
+        print("Using cleanlab to cleanup dataset...")
+        print(f"Original dataset length: {len(train_dataset)}")
+        filter = CleanLabFilter(dataset_name, train_dataset)
+        train_dataset = filter.clean_dataset()
+        print(f"Filtered dataset length: {len(train_dataset)}")
 
+    train_dataset = train_dataset.shuffle(seed=run_num)
     num_classes = train_dataset.features['label'].num_classes
 
     print('Length of train_dataset:', len(train_dataset))
