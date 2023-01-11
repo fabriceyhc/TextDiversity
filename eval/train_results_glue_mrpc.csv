@@ -13,3 +13,13 @@
 11,1.3200814723968506,0.8614492753623189,11.789,146.323,9.161,10.0,./pretrained/roberta-base-glue_mrpc_random,roberta-base,1,random,"['glue', 'mrpc']",4362.477557182312
 12,0.9347851276397705,0.7727536231884058,11.7689,146.573,9.177,10.0,./pretrained/roberta-base-glue_mrpc_qcpg,roberta-base,1,qcpg,"['glue', 'mrpc']",4353.373846769333
 13,1.2686984539031982,0.7785507246376812,11.8666,145.366,9.101,10.0,./pretrained/roberta-base-glue_mrpc_qcpgpp,roberta-base,1,qcpgpp,"['glue', 'mrpc']",4357.707845926285
+14,0.9835125803947449,0.8452173913043478,11.9644,144.177,9.027,10.0,./pretrained/roberta-base-glue_mrpc_textdiv,roberta-base,1,textdiv,"['glue', 'mrpc']",4403.345245838165
+15,0.4053252637386322,0.8336231884057971,11.7188,147.199,9.216,6.0,./pretrained/roberta-base-glue_mrpc_dips,roberta-base,1,dips,"['glue', 'mrpc']",2629.4998285770416
+16,0.7077518701553345,0.8423188405797102,11.639,148.208,9.279,9.99,./pretrained/roberta-base-glue_mrpc_orig,roberta-base,2,orig,"['glue', 'mrpc']",1104.2629971504211
+17,0.5044123530387878,0.8359420289855073,11.6725,147.783,9.253,6.0,./pretrained/roberta-base-glue_mrpc_beam,roberta-base,2,beam,"['glue', 'mrpc']",2565.637570142746
+18,0.9988200068473816,0.856231884057971,11.6871,147.598,9.241,10.0,./pretrained/roberta-base-glue_mrpc_diverse_beam,roberta-base,2,diverse_beam,"['glue', 'mrpc']",4280.548827886581
+19,0.9939910173416138,0.8434782608695652,11.7502,146.806,9.191,8.0,./pretrained/roberta-base-glue_mrpc_random,roberta-base,2,random,"['glue', 'mrpc']",3432.63902425766
+20,0.6696493029594421,0.7089855072463768,11.7016,147.415,9.229,7.0,./pretrained/roberta-base-glue_mrpc_qcpg,roberta-base,2,qcpg,"['glue', 'mrpc']",2989.9747891426086
+21,0.6739644408226013,0.664927536231884,11.7274,147.091,9.209,6.0,./pretrained/roberta-base-glue_mrpc_qcpgpp,roberta-base,2,qcpgpp,"['glue', 'mrpc']",2563.2744295597076
+22,0.8554245829582214,0.8504347826086956,12.0728,142.883,8.946,8.0,./pretrained/roberta-base-glue_mrpc_textdiv,roberta-base,2,textdiv,"['glue', 'mrpc']",3508.48308801651
+23,1.3728634119033813,0.8405797101449275,12.5041,137.954,8.637,10.0,./pretrained/roberta-base-glue_mrpc_dips,roberta-base,2,dips,"['glue', 'mrpc']",4484.244423866272
