@@ -27,7 +27,7 @@ parser.add_argument('--num-outputs', default=3, type=int, metavar='N',
 parser.add_argument('--batch-size', default=10, type=int, metavar='N',
                     help='number of inputs to proccess per iteration')
 parser.add_argument('--techniques', nargs='+', 
-                    default=['beam', 'diverse_beam', 'random', 'qcpg', 'qcpgpp', 'textdiv', 'dips'], #, 'sowreap'],
+                    default=['beam', 'diverse_beam', 'random', 'qcpg', 'qcpgpp', 'dips', 'textdiv'], #, 'sowreap'],
                     type=str, help='technique used to generate paraphrases')
 parser.add_argument('--keep-original', default=True, action='store_true',
                     help='preserve original dataset in the updated one')
