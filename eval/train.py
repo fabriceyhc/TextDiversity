@@ -42,7 +42,7 @@ parser.add_argument('--dataset-config', nargs='+', default=['paws', 'labeled_fin
                     type=str, help='dataset info needed for load_dataset.')
 parser.add_argument('--dataset-keys', nargs='+', default=['sentence1', 'sentence2'],
                     type=str, help='dataset info needed for load_dataset.')
-parser.add_argument('--cleanlab-filter', default=True, action='store_true',
+parser.add_argument('--cleanlab-filter', default=False, action='store_true',
                     help='filter out inputs with potential label errors')
 parser.add_argument('--models', nargs='+',  default=['distilbert-base-uncased'], 
                     type=str, help='pretrained huggingface models to train')
@@ -123,6 +123,7 @@ for run_arg in run_args[start_position:]:
         save_name = "_".join(args.dataset_config) + "_" + technique
         save_path = os.path.join(args.data_dir, save_name)
         train_dataset = load_from_disk(save_path)
+        print(train_dataset)
 
     if "snips_built_in_intents" in args.dataset_config:
         # special handling since snips has no val / test split
@@ -148,11 +149,17 @@ for run_arg in run_args[start_position:]:
         # special handling since trec has different label granularities
         test_dataset = load_dataset(args.dataset_config[0], split='test') 
         if 'coarse_label' in args.dataset_config:
-            test_dataset = test_dataset.remove_columns("label-fine")
-            test_dataset = test_dataset.rename_column("label-coarse", "label")
+            test_dataset = test_dataset.remove_columns("fine_label")
+            test_dataset = test_dataset.rename_column("coarse_label", "label")
+            if technique == "orig":
+                train_dataset = train_dataset.remove_columns("fine_label")
+                train_dataset = train_dataset.rename_column("coarse_label", "label")
         elif 'fine_label' in args.dataset_config:
-            test_dataset = test_dataset.remove_columns("label-coarse")
-            test_dataset = test_dataset.rename_column("label-fine", "label")
+            test_dataset = test_dataset.remove_columns("coarse_label")
+            test_dataset = test_dataset.rename_column("fine_label", "label")
+            if technique == "orig":
+                train_dataset = train_dataset.remove_columns("coarse_label")
+                train_dataset = train_dataset.rename_column("fine_label", "label")
         test_valid    = test_dataset.train_test_split(test_size=0.5)
         eval_dataset  = test_valid['test']
         test_dataset  = test_valid['train']

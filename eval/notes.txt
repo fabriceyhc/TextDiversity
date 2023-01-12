@@ -54,8 +54,8 @@ python train.py --dataset-config snips_built_in_intents --dataset-keys text --gp
 python train.py --dataset-config banking77 --dataset-keys text --gpus 0 --save-file train_results_banking77.csv
 python train.py --dataset-config tweet_eval emotion --dataset-keys text --gpus 0 --save-file train_results_tweet_eval_emotion.csv
 python train.py --dataset-config glue mrpc --gpus 0 --save-file train_results_glue_mrpc.csv
-python train.py --dataset-config trec coarse_label --gpus 0 --save-file train_results_trec_coarse_label.csv
-python train.py --dataset-config trec fine_label --gpus 0 --save-file train_results_trec_fine_label.csv
+python train.py --dataset-config trec coarse_label --gpus 0 --dataset-keys text --save-file train_results_trec_coarse_label.csv
+python train.py --dataset-config trec fine_label --gpus 0 --dataset-keys text --save-file train_results_trec_fine_label.csv
 
 ## intrinsic.py cmds
 python intrinsic.py --dataset-config snips_built_in_intents --dataset-keys text --num-runs 100 --save-file intrinsic_results_snips_built_in_intents.csv
