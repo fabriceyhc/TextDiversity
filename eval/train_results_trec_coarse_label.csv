@@ -1,0 +1,25 @@
+,eval_loss,eval_accuracy,eval_runtime,eval_samples_per_second,eval_steps_per_second,epoch,run_name,model_name,run_num,technique,dataset_config,run_time
+0,0.1421688050031662,0.98,0.2656,941.301,60.243,8.99,./pretrained/distilbert-base-uncased-trec_coarse_label_orig,distilbert-base-uncased,0,orig,"['trec', 'coarse_label']",357.94130969047546
+1,0.2905169725418091,0.964,0.3749,666.776,42.674,8.0,./pretrained/distilbert-base-uncased-trec_coarse_label_beam,distilbert-base-uncased,0,beam,"['trec', 'coarse_label']",1797.1856694221497
+2,0.3278660774230957,0.948,0.2343,1067.059,68.292,7.0,./pretrained/distilbert-base-uncased-trec_coarse_label_diverse_beam,distilbert-base-uncased,0,diverse_beam,"['trec', 'coarse_label']",1035.6286187171936
+3,0.2432774305343628,0.952,0.203,1231.239,78.799,6.0,./pretrained/distilbert-base-uncased-trec_coarse_label_random,distilbert-base-uncased,0,random,"['trec', 'coarse_label']",1391.6792905330658
+4,0.2769332826137543,0.924,0.2031,1231.052,78.787,7.0,./pretrained/distilbert-base-uncased-trec_coarse_label_qcpg,distilbert-base-uncased,0,qcpg,"['trec', 'coarse_label']",1032.9291825294495
+5,0.1697012335062027,0.94,0.2041,1224.613,78.375,6.0,./pretrained/distilbert-base-uncased-trec_coarse_label_qcpgpp,distilbert-base-uncased,0,qcpgpp,"['trec', 'coarse_label']",883.9276306629181
+6,0.21959592401981354,0.952,0.2343,1066.93,68.284,6.0,./pretrained/distilbert-base-uncased-trec_coarse_label_textdiv,distilbert-base-uncased,0,textdiv,"['trec', 'coarse_label']",1584.9184453487396
+7,0.5584655404090881,0.944,0.2187,1142.973,73.15,10.0,./pretrained/distilbert-base-uncased-trec_coarse_label_dips,distilbert-base-uncased,0,dips,"['trec', 'coarse_label']",2568.911623954773
+8,0.24371008574962616,0.976,0.2031,1230.896,78.777,9.99,./pretrained/distilbert-base-uncased-trec_coarse_label_orig,distilbert-base-uncased,1,orig,"['trec', 'coarse_label']",387.435054063797
+9,0.23522068560123444,0.948,0.2343,1066.933,68.284,6.0,./pretrained/distilbert-base-uncased-trec_coarse_label_beam,distilbert-base-uncased,1,beam,"['trec', 'coarse_label']",1340.085158586502
+10,0.24646343290805817,0.952,0.2187,1143.128,73.16,6.0,./pretrained/distilbert-base-uncased-trec_coarse_label_diverse_beam,distilbert-base-uncased,1,diverse_beam,"['trec', 'coarse_label']",887.0414371490479
+11,0.2262277454137802,0.96,0.2187,1143.15,73.162,6.0,./pretrained/distilbert-base-uncased-trec_coarse_label_random,distilbert-base-uncased,1,random,"['trec', 'coarse_label']",1403.6349649429321
+12,0.25007742643356323,0.948,0.2031,1231.113,78.791,7.0,./pretrained/distilbert-base-uncased-trec_coarse_label_qcpg,distilbert-base-uncased,1,qcpg,"['trec', 'coarse_label']",1034.6887304782867
+13,0.15369588136672974,0.952,0.2187,1143.221,73.166,6.0,./pretrained/distilbert-base-uncased-trec_coarse_label_qcpgpp,distilbert-base-uncased,1,qcpgpp,"['trec', 'coarse_label']",885.4032413959503
+14,0.7776602506637573,0.924,0.2187,1143.136,73.161,10.0,./pretrained/distilbert-base-uncased-trec_coarse_label_textdiv,distilbert-base-uncased,1,textdiv,"['trec', 'coarse_label']",2644.5633776187897
+15,0.6380241513252258,0.932,0.2187,1142.961,73.149,10.0,./pretrained/distilbert-base-uncased-trec_coarse_label_dips,distilbert-base-uncased,1,dips,"['trec', 'coarse_label']",2577.886513233185
+16,0.21571844816207886,0.968,0.2031,1230.876,78.776,8.99,./pretrained/distilbert-base-uncased-trec_coarse_label_orig,distilbert-base-uncased,2,orig,"['trec', 'coarse_label']",346.39708971977234
+17,0.6338038444519043,0.94,0.2343,1066.781,68.274,10.0,./pretrained/distilbert-base-uncased-trec_coarse_label_beam,distilbert-base-uncased,2,beam,"['trec', 'coarse_label']",2238.043134212494
+18,0.35849207639694214,0.936,0.2348,1064.725,68.142,7.0,./pretrained/distilbert-base-uncased-trec_coarse_label_diverse_beam,distilbert-base-uncased,2,diverse_beam,"['trec', 'coarse_label']",1039.0643775463104
+19,0.3947514593601227,0.944,0.25,1000.082,64.005,9.0,./pretrained/distilbert-base-uncased-trec_coarse_label_random,distilbert-base-uncased,2,random,"['trec', 'coarse_label']",2096.77996468544
+20,0.2975085377693176,0.932,0.2866,872.24,55.823,7.0,./pretrained/distilbert-base-uncased-trec_coarse_label_qcpg,distilbert-base-uncased,2,qcpg,"['trec', 'coarse_label']",1028.582751750946
+21,0.7358001470565796,0.916,0.2812,889.101,56.902,10.0,./pretrained/distilbert-base-uncased-trec_coarse_label_qcpgpp,distilbert-base-uncased,2,qcpgpp,"['trec', 'coarse_label']",1505.5468356609344
+22,0.28084343671798706,0.956,0.2036,1227.746,78.576,7.0,./pretrained/distilbert-base-uncased-trec_coarse_label_textdiv,distilbert-base-uncased,2,textdiv,"['trec', 'coarse_label']",1845.8464815616608
+23,0.47992581129074097,0.952,0.2031,1230.883,78.777,10.0,./pretrained/distilbert-base-uncased-trec_coarse_label_dips,distilbert-base-uncased,2,dips,"['trec', 'coarse_label']",2575.7485041618347
