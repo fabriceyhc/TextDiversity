@@ -133,3 +133,4 @@ dmypy.json
 */pretrained/*
 */logs/*
 # */prepared_datasets/*
+*/prepared_datasets/*/cache*
