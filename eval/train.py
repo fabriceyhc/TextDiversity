@@ -42,7 +42,7 @@ parser.add_argument('--dataset-config', nargs='+', default=['paws', 'labeled_fin
                     type=str, help='dataset info needed for load_dataset.')
 parser.add_argument('--dataset-keys', nargs='+', default=['sentence1', 'sentence2'],
                     type=str, help='dataset info needed for load_dataset.')
-parser.add_argument('--cleanlab-filter', default=False, action='store_true',
+parser.add_argument('--cleanlab-filter', default=True, action='store_true',
                     help='filter out inputs with potential label errors')
 parser.add_argument('--models', nargs='+',  default=['distilbert-base-uncased'], 
                     type=str, help='pretrained huggingface models to train')
@@ -170,8 +170,8 @@ for run_arg in run_args[start_position:]:
     if args.cleanlab_filter:
         print("Using cleanlab to cleanup dataset...")
         print(f"Original dataset length: {len(train_dataset)}")
-        filter = CleanLabFilter(dataset_name, train_dataset)
-        train_dataset = filter.clean_dataset()
+        f = CleanLabFilter(dataset_name, train_dataset)
+        train_dataset = f.clean_dataset()
         print(f"Filtered dataset length: {len(train_dataset)}")
 
     train_dataset = train_dataset.shuffle(seed=run_num)
@@ -180,6 +180,8 @@ for run_arg in run_args[start_position:]:
     print('Length of train_dataset:', len(train_dataset))
     print('Length of eval_dataset:', len(eval_dataset))
     print('Number of classes:', num_classes)
+
+    break
 
     #############################################################
     ## Model + Tokenize #########################################

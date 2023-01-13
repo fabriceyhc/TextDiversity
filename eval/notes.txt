@@ -65,4 +65,7 @@ python intrinsic.py --dataset-config trec coarse_label --dataset-keys text --num
 python intrinsic.py --dataset-config trec fine_label --dataset-keys text --num-runs 100 --save-file intrinsic_results_trec_fine_label.csv
 
 
-python train.py --dataset-config snips_built_in_intents --dataset-keys text --gpus 0 --save-file train_results_snips_built_in_intents_distilbert.csv
+python train.py --dataset-config snips_built_in_intents --dataset-keys text --gpus 0 --save-file train_results_snips_built_in_intents_distilbert_cl.csv
+conda activate textdiv
+cd Documents\GitHub\TextDiversity\eval
+python train.py --dataset-config snips_built_in_intents --dataset-keys text --gpus 0 --save-file train_results_snips_built_in_intents_distilbert_cl.csv

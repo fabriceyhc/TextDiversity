@@ -26,9 +26,9 @@ class CleanLabFilter:
         self.find_model_for_dataset()
 
     def find_model_for_dataset(self):
-        model_ids = self.api.list_models(filter=self.model_filter)
-        if model_ids:
-            model_id = getattr(model_ids[0], 'modelId')
+        model_id = next(iter(self.api.list_models(filter=self.model_filter)))
+        if model_id:
+            model_id = getattr(model_id, 'modelId')
             print('Using ' + model_id + ' to support cleanlab datalabel issues.')
             self.pipe = pipeline("text-classification", 
                                  model=model_id, 
@@ -43,11 +43,25 @@ class CleanLabFilter:
         if self.pipe is None:
             return self.dataset
 
+        pred_probs = self.extract_prediction_probabilities()
         suss_idx = find_label_issues(
             labels=self.dataset['label'],
-            pred_probs=self.extract_prediction_probabilities(),  
+            pred_probs=pred_probs,  
             return_indices_ranked_by='self_confidence',
             min_examples_per_class=(self.dataset_len // self.num_classes) - 1
         )
         idx_to_keep = [i for i in range(len(self.dataset)) if i not in suss_idx]
         return self.dataset.select(idx_to_keep)
+
+
+if __name__ == "__main__":
+    from datasets import load_dataset
+
+    dataset_name = "snips_built_in_intents"
+    dataset = load_dataset(dataset_name)['train']
+
+    print("Using cleanlab to cleanup dataset...")
+    print(f"Original dataset length: {len(dataset)}")
+    filter = CleanLabFilter(dataset_name, dataset)
+    dataset = filter.clean_dataset()
+    print(f"Filtered dataset length: {len(dataset)}")
