@@ -286,6 +286,7 @@ def train(args):
         out['model_name'] = MODEL_NAME
         out['run_num'] = run_num
         out['technique'] = technique
+        out['use_cleanlab'] = use_cleanlab
         out['dataset_config'] = args.dataset_config
         out['run_time'] = run_time
         print('Performance of {}\n{}'.format(checkpoint, out))
