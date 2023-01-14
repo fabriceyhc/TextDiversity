@@ -41,9 +41,9 @@ parser.add_argument('--dataset-config', nargs='+', default=['paws', 'labeled_fin
                     type=str, help='dataset info needed for load_dataset.')
 parser.add_argument('--dataset-keys', nargs='+', default=['sentence1', 'sentence2'],
                     type=str, help='dataset info needed for load_dataset.')
-parser.add_argument('--cleanlab-filter', default=True, action='store_true',
+parser.add_argument('--cleanlab-filter',  nargs='+', default=[True, False],
                     help='filter out inputs with potential label errors')
-parser.add_argument('--models', nargs='+',  default=['distilbert-base-uncased'], 
+parser.add_argument('--models', nargs='+',  default=['prajjwal1/bert-tiny'], 
                     type=str, help='pretrained huggingface models to train')
 parser.add_argument('--save-file', type=str, default='train_results.csv',
                     help='name for the csv file to save with results')
@@ -82,11 +82,13 @@ def train(args):
     for run_num in range(args.num_runs):
         for technique in args.techniques:
             for MODEL_NAME in args.models:
-                run_args.append({
-                    "run_num":run_num,
-                    "technique":technique,
-                    "MODEL_NAME":MODEL_NAME
-                })
+                for use_cleanlab in args.cleanlab_filter:
+                    run_args.append({
+                        "run_num":run_num,
+                        "technique":technique,
+                        "MODEL_NAME":MODEL_NAME,
+                        "use_cleanlab":use_cleanlab,
+                    })
 
     # print(run_args)
 
@@ -109,6 +111,7 @@ def train(args):
         run_num = run_arg['run_num']
         technique = run_arg['technique']
         MODEL_NAME = run_arg['MODEL_NAME']
+        use_cleanlab = run_arg['use_cleanlab']
 
         print(pd.DataFrame([run_arg]))
 
@@ -131,7 +134,7 @@ def train(args):
 
         if technique == "orig":
             if "snips_built_in_intents" in args.dataset_config:
-                train_dataset = load_dataset(*args.dataset_config, split='train[:90%]').shuffle()
+                train_dataset = load_dataset(*args.dataset_config, split='train[:60%]').shuffle()
             else:
                 train_dataset = load_dataset(*args.dataset_config, split='train').shuffle()
         else:
@@ -142,10 +145,10 @@ def train(args):
 
         if "snips_built_in_intents" in args.dataset_config:
             # special handling since snips has no val / test split
-            remaining_dataset = load_dataset(*args.dataset_config, split='train[90%:]')
-            test_valid    = remaining_dataset.train_test_split(test_size=0.5)
-            eval_dataset  = test_valid['test']
-            test_dataset  = test_valid['train']
+            remaining_dataset = load_dataset(*args.dataset_config, split='train[60%:]')
+            test_valid    = remaining_dataset.train_test_split(test_size=0.8)
+            eval_dataset  = test_valid['train']
+            test_dataset  = test_valid['test']
         elif 'sst2' in args.dataset_config:
             # special handling since sst2 has no test labels
             dataset_name = args.dataset_config[1]
@@ -181,7 +184,7 @@ def train(args):
             eval_dataset  = load_dataset(*args.dataset_config, split='validation')
             test_dataset  = load_dataset(*args.dataset_config, split='test')
 
-        if args.cleanlab_filter and technique != "orig":
+        if use_cleanlab:
             print("Using cleanlab to cleanup dataset...")
             print(f"Original dataset length: {len(train_dataset)}")
             cl_filter.find_model_for_dataset(dataset_name)
@@ -193,6 +196,7 @@ def train(args):
 
         print('Length of train_dataset:', len(train_dataset))
         print('Length of eval_dataset:', len(eval_dataset))
+        print('Length of test_dataset:', len(test_dataset))
         print('Number of classes:', num_classes)
 
         #############################################################
