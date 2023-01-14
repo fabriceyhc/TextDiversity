@@ -43,7 +43,7 @@ parser.add_argument('--dataset-keys', nargs='+', default=['sentence1', 'sentence
                     type=str, help='dataset info needed for load_dataset.')
 parser.add_argument('--cleanlab-filter',  nargs='+', default=[True, False],
                     help='filter out inputs with potential label errors')
-parser.add_argument('--models', nargs='+',  default=['prajjwal1/bert-tiny'], 
+parser.add_argument('--models', nargs='+',  default=['prajjwal1/bert-tiny', 'bert-base-uncased', 'roberta-base'], 
                     type=str, help='pretrained huggingface models to train')
 parser.add_argument('--save-file', type=str, default='train_results.csv',
                     help='name for the csv file to save with results')
@@ -90,7 +90,7 @@ def train(args):
                         "use_cleanlab":use_cleanlab,
                     })
 
-    # print(run_args)
+    print(run_args)
 
     results = []
     save_file = args.save_file  
