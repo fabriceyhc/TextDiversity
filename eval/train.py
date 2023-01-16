@@ -86,9 +86,9 @@ def train(args):
     run_args = []
     for run_num in range(args.num_runs):
         for MODEL_NAME in args.models:
-            for technique in args.techniques:
-                for num_train_per_class in args.num_train_per_class:
-                    for use_cleanlab in args.cleanlab_filter:
+            for use_cleanlab in args.cleanlab_filter:
+                for technique in args.techniques:
+                    for num_train_per_class in args.num_train_per_class:
                         run_args.append({
                             "run_num":run_num,
                             "technique":technique,

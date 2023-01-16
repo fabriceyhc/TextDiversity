@@ -22,8 +22,8 @@ def balance_dataset(dataset, num_per_class=100):
     class_partitions = partition_dataset_by_class(dataset)
 
     # find smallest number of instances among any class
-    smallest_num_instances = min([len(p) for p in class_partitions])
-    if num_per_class == "min":
+    if "min" in num_per_class:
+        smallest_num_instances = min([len(p) for p in class_partitions])
         print(f"original num_per_class: {num_per_class}, new num_per_class: {smallest_num_instances}")
         num_per_class = smallest_num_instances
 
