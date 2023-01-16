@@ -13,8 +13,11 @@ import argparse
 import time
 import torch
 import pandas as pd
+import random
 
-from filters import CleanLabFilter
+from filters import CleanLabFilter, balance_dataset
+
+random.seed(130)
 
 # aargparse
 
@@ -41,7 +44,9 @@ parser.add_argument('--dataset-config', nargs='+', default=['paws', 'labeled_fin
                     type=str, help='dataset info needed for load_dataset.')
 parser.add_argument('--dataset-keys', nargs='+', default=['sentence1', 'sentence2'],
                     type=str, help='dataset info needed for load_dataset.')
-parser.add_argument('--cleanlab-filter',  nargs='+', default=[True, False],
+parser.add_argument('--num-train-per-class', nargs='+', default=[10, 200, 2500], type=int, 
+                    help='number of training examples per class')
+parser.add_argument('--cleanlab-filter',  nargs='+', default=[False, True],
                     help='filter out inputs with potential label errors')
 parser.add_argument('--models', nargs='+',  default=['prajjwal1/bert-tiny', 'bert-base-uncased', 'roberta-base'], 
                     type=str, help='pretrained huggingface models to train')
@@ -80,15 +85,17 @@ def train(args):
 
     run_args = []
     for run_num in range(args.num_runs):
-        for technique in args.techniques:
-            for MODEL_NAME in args.models:
-                for use_cleanlab in args.cleanlab_filter:
-                    run_args.append({
-                        "run_num":run_num,
-                        "technique":technique,
-                        "MODEL_NAME":MODEL_NAME,
-                        "use_cleanlab":use_cleanlab,
-                    })
+        for MODEL_NAME in args.models:
+            for technique in args.techniques:
+                for num_train_per_class in args.num_train_per_class:
+                    for use_cleanlab in args.cleanlab_filter:
+                        run_args.append({
+                            "run_num":run_num,
+                            "technique":technique,
+                            "num_train_per_class":num_train_per_class,
+                            "MODEL_NAME":MODEL_NAME,
+                            "use_cleanlab":use_cleanlab,
+                        })
 
     print(run_args)
 
@@ -112,6 +119,7 @@ def train(args):
         technique = run_arg['technique']
         MODEL_NAME = run_arg['MODEL_NAME']
         use_cleanlab = run_arg['use_cleanlab']
+        num_train_per_class = run_arg['num_train_per_class']
 
         print(pd.DataFrame([run_arg]))
 
@@ -184,6 +192,7 @@ def train(args):
             eval_dataset  = load_dataset(*args.dataset_config, split='validation')
             test_dataset  = load_dataset(*args.dataset_config, split='test')
 
+        # remove suspicious labels using cleanlab
         if use_cleanlab:
             print("Using cleanlab to cleanup dataset...")
             print(f"Original dataset length: {len(train_dataset)}")
@@ -191,6 +200,10 @@ def train(args):
             train_dataset = cl_filter.clean_dataset(train_dataset)
             print(f"Filtered dataset length: {len(train_dataset)}")
 
+        # balance + filter the dataset by class
+        train_dataset = balance_dataset(train_dataset, num_train_per_class)
+
+        # shuffle the dataset
         train_dataset = train_dataset.shuffle(seed=run_num)
         num_classes = train_dataset.features['label'].num_classes
 
