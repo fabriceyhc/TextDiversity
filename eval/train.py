@@ -48,7 +48,7 @@ parser.add_argument('--num-train-per-class', nargs='+', default=[10, 200, 2500],
                     help='number of training examples per class')
 parser.add_argument('--cleanlab-filter',  nargs='+', default=[False, True],
                     help='filter out inputs with potential label errors')
-parser.add_argument('--models', nargs='+',  default=['prajjwal1/bert-tiny', 'bert-base-uncased', 'roberta-base'], 
+parser.add_argument('--models', nargs='+',  default=['prajjwal1/bert-tiny', 'bert-base-uncased', 'bert-large-uncased'], 
                     type=str, help='pretrained huggingface models to train')
 parser.add_argument('--save-file', type=str, default='train_results.csv',
                     help='name for the csv file to save with results')
@@ -201,7 +201,12 @@ def train(args):
             print(f"Filtered dataset length: {len(train_dataset)}")
 
         # balance + filter the dataset by class
-        train_dataset = balance_dataset(train_dataset, num_train_per_class)
+        if technique == "orig":
+            train_dataset = balance_dataset(train_dataset, num_train_per_class)
+        else:
+            # using a 4x multiplier for augmentation
+            train_dataset = balance_dataset(train_dataset, num_train_per_class * 4)
+
 
         # shuffle the dataset
         train_dataset = train_dataset.shuffle(seed=run_num)
@@ -299,6 +304,8 @@ def train(args):
         out['model_name'] = MODEL_NAME
         out['run_num'] = run_num
         out['technique'] = technique
+        out['num_train_per_class'] = num_train_per_class
+        out['dataset_size'] = len(train_dataset)
         out['use_cleanlab'] = use_cleanlab
         out['dataset_config'] = args.dataset_config
         out['run_time'] = run_time
