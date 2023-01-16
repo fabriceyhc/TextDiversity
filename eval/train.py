@@ -44,7 +44,7 @@ parser.add_argument('--dataset-config', nargs='+', default=['paws', 'labeled_fin
                     type=str, help='dataset info needed for load_dataset.')
 parser.add_argument('--dataset-keys', nargs='+', default=['sentence1', 'sentence2'],
                     type=str, help='dataset info needed for load_dataset.')
-parser.add_argument('--num-train-per-class', nargs='+', default=[10, 200, 2500], type=int, 
+parser.add_argument('--num-train-per-class', nargs='+', default=[10, "min"], type=int, 
                     help='number of training examples per class')
 parser.add_argument('--cleanlab-filter',  nargs='+', default=[False, True],
                     help='filter out inputs with potential label errors')

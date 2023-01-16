@@ -6,25 +6,37 @@ from datasets import concatenate_datasets
 from huggingface_hub import HfApi, ModelFilter
 from cleanlab.filter import find_label_issues
 
-def balance_dataset(dataset, num_per_class=100):
+def partition_dataset_by_class(dataset):
     classes = dataset.features['label'].names
     num_classes = len(classes)
 
     class_partitions = []
     for i in range(num_classes):
-        # get all instances per class
         class_partition = dataset.filter(lambda row: row["label"] == i)
+        class_partitions.append(class_partition)
+    return class_partitions
 
+
+def balance_dataset(dataset, num_per_class=100):
+    # partition dataset by class
+    class_partitions = partition_dataset_by_class(dataset)
+
+    # find smallest number of instances among any class
+    smallest_num_instances = min([len(p) for p in class_partitions])
+    if num_per_class == "min":
+        print(f"original num_per_class: {num_per_class}, new num_per_class: {smallest_num_instances}")
+        num_per_class = smallest_num_instances
+
+    # filter to desired amount
+    filtered_partitions = []
+    for class_partition in class_partitions:
         # select only the requested amount
         num_instances_in_class = len(class_partition)
         if num_instances_in_class >= num_per_class:
             idx_to_keep = random.sample(range(num_instances_in_class), num_per_class)
             class_partition = class_partition.select(idx_to_keep).shuffle()
-        else:
-            print(f"Class {i} has {num_instances_in_class}, keeping all of them...") 
-        class_partitions.append(class_partition)
-
-    return concatenate_datasets(class_partitions).shuffle()
+        filtered_partitions.append(class_partition)
+    return concatenate_datasets(filtered_partitions)
 
 def vectorize(output):
     sorted_output = sorted(output, key=lambda d: d['label']) 
