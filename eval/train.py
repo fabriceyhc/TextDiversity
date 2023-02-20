@@ -45,7 +45,7 @@ parser.add_argument('--data-dir', type=str, default="./prepared_datasets/",
                     help='path to data folders')
 parser.add_argument('--save-dir', type=str, default="./pretrained/",
                     help='path to data folders')
-parser.add_argument('--num_epochs', default=10, type=int, metavar='N',
+parser.add_argument('--num_epochs', default=20, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--logging_steps_per_epoch', default=10, type=int, metavar='N',
                     help='number of times to run validation + log per epoch')
@@ -61,7 +61,7 @@ parser.add_argument('--gpus', default='0', type=str,
                     help='id(s) for CUDA_VISIBLE_DEVICES')
 parser.add_argument('--num_runs', default=3, type=int, metavar='N',
                     help='number of times to repeat the training')
-parser.add_argument('--num-train-per-class', nargs='+', default=[10, "all"], type=int, 
+parser.add_argument('--num-train-per-class', nargs='+', default=["all"], type=int, 
                     help='number of training examples per class')
 parser.add_argument('--cleanlab-filter',  nargs='+', default=[False],
                     help='filter out inputs with potential label errors')
@@ -147,6 +147,13 @@ def train(args):
             cl_filter.find_model_for_dataset(args.dataset_config[0])
             train_dataset = cl_filter.clean_dataset(train_dataset)
             print(f"Filtered dataset length: {len(train_dataset)}")
+
+        if num_train_per_class not in "all":
+            if technique == "orig":
+                raw_datasets["train"] = balance_dataset(raw_datasets["train"], num_train_per_class)
+            else:
+                # using a 4x multiplier for augmentation
+                raw_datasets["train"] = balance_dataset(raw_datasets["train"], num_train_per_class * 4)
 
         num_labels = len(raw_datasets["train"].features["label"].names)
 
@@ -242,15 +249,17 @@ def train(args):
         # test with ORIG data
         out = trainer.evaluate(tokenized_datasets["test"])
         out.update({
-            "run_num":          run_num,
-            "technique":        technique,
-            "model_checkpoint": model_checkpoint,
-            "checkpoint":       checkpoint,
-            "dataset_config":   args.dataset_config,
-            "train_size":       len(tokenized_datasets["train"]),
-            "valid_size":       len(tokenized_datasets["validation"]),
-            "test_size":        len(tokenized_datasets["test"]),
-            "run_time":         run_time,
+            "run_num":             run_num,
+            "technique":           technique,
+            "model_checkpoint":    model_checkpoint,
+            "use_cleanlab":        use_cleanlab,
+            "checkpoint":          checkpoint,
+            "dataset_config":      args.dataset_config,
+            "train_size":          len(tokenized_datasets["train"]),
+            "valid_size":          len(tokenized_datasets["validation"]),
+            "test_size":           len(tokenized_datasets["test"]),
+            "num_train_per_class": num_train_per_class,
+            "run_time":            run_time,
         })
         print('Performance of {}\n{}'.format(checkpoint, out))
 
