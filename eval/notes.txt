@@ -57,8 +57,8 @@ python train.py --dataset-config glue mrpc --gpus 0 --save-file train_results_gl
 python train.py --dataset-config trec coarse_label --gpus 0 --dataset-keys text --save-file train_results_trec_coarse_label.csv
 python train.py --dataset-config trec fine_label --gpus 0 --dataset-keys text --save-file train_results_trec_fine_label.csv
 
-python train.py --dataset-config tweet_eval emotion --dataset-keys text --gpus 0 --save-file train_results_tweet_eval_emotion_cl.csv
-python train.py --dataset-config banking77 --dataset-keys text --gpus 0 --save-file train_results_banking77_all.csv
+python train.py --dataset-config tweet_eval emotion --save-file train_results_tweet_eval_emotion_cl.csv
+python train.py --dataset-config banking77 --save-file ./results/train/banking77.csv
 
 
 ## intrinsic.py cmds
