@@ -3,7 +3,7 @@
 ## Installation
 
 ```
-pip install -r requirements.txt
+pip install textdiversity
 ```
 
 Some of the text diversity measures rely on software that must be installed separately. For your particular OS, follow the instructions below:
