@@ -1,4 +1,6 @@
 # TextDiversity
+
+This code is designed to measure various kinds of linguistic diversity using similarity-sensitive hill numbers (SSHN). Originally adapted from the study of species diversity in ecology, SSHNs are used to characterize the _effective number_ of species in a population. Within the context of NLP, species are the linguistic units of interest (e.g. words, parse trees, etc) and the population is a corpus of documents. For example, if the "token semantic diversity" of a corpus is 9, this can be read as the corpus containing 9 semantic concepts. 
  
 ## Installation
 
